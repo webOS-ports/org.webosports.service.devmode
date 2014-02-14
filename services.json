@@ -10,6 +10,11 @@
                 "name": "setStatus",
                 "assistant": "DevModeSetStatusAssistant",
                 "public": false
+            },
+            {
+                "name": "getStatus",
+                "assistant": "DevModeGetStatusAssistant",
+                "public": false
             }
         ]
     } ]

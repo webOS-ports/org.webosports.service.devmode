@@ -6,6 +6,9 @@
         }
     },
     {
+        "source": "prologue.js"
+    },
+    {
         "source": "DevModeAssistants.js"
     }
 ]
