@@ -5,5 +5,6 @@ if (typeof require === "undefined") {
 }
 
 var fs = require('fs');
+var spawn = require('child_process').spawn;
 
 console.error("---------> Loaded Libraries OK");

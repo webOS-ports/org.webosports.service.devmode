@@ -22,6 +22,11 @@ var DevModeGetStatusAssistant = function() { }
 
 var usbDebuggingEnabledFilePath = "/var/usb-debugging-enabled";
 
+function setSystemdServiceStatus(name, status) {
+    var action = status ? 'start' : 'stop';
+    spawn('/bin/systemctl', [action, name]);
+}
+
 DevModeSetStatusAssistant.prototype.run = function(future) {
     var success = false;
     var errorText = "";
@@ -32,13 +37,16 @@ DevModeSetStatusAssistant.prototype.run = function(future) {
                 if (!err) {
                     fs.close(fd);
                     success = true;
+                    setSystemdServiceStatus('android-tools-adbd', true);
                 }
             });
         }
-        else if (this.controller.args.status === "disabled") {
+        else if (this.controller.args.usbDebugging === "disabled") {
             fs.unlink(usbDebuggingEnabledFilePath, function(err) {
-                if (!err)
+                if (!err) {
                     success = true;
+                    setSystemdServiceStatus('android-tools-adbd', false);
+                }
             });
         }
         else {
@@ -56,6 +64,8 @@ DevModeGetStatusAssistant.prototype.run = function(future) {
     var usbDebugging = fs.existsSync(usbDebuggingEnabledFilePath) ? "enabled" : "disabled";
     future.result = {
         "returnValue": true,
+        /* for now report the devmode as always enabled */
+        "status": "enabled",
         "usbDebugging": usbDebugging
     };
 }
