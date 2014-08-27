@@ -1,7 +1,7 @@
 {
     "id": "org.webosports.service.devmode",
     "description": "Developer mode management service",
-    "activityTimeout": 3600,
+    "activityTimeout": 30,
     "services": [ {
         "name": "org.webosports.service.devmode",
         "description": "Developer mode management service",
