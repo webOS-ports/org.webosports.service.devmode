@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2013 Simon Busch <morphis@gravedo.de>
+ *  Copyright (C) 2013-2014 Simon Busch <morphis@gravedo.de>
  *
  *  This program is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU General Public License
@@ -20,6 +20,7 @@
 var DevModeSetStatusAssistant = function() { }
 var DevModeGetStatusAssistant = function() { }
 
+var devmodeEnabledFilePath = "/var/luna/dev-mode-enabled";
 var usbDebuggingEnabledFilePath = "/var/usb-debugging-enabled";
 
 function setSystemdServiceStatus(name, status) {
@@ -30,6 +31,27 @@ function setSystemdServiceStatus(name, status) {
 DevModeSetStatusAssistant.prototype.run = function(future) {
     var success = false;
     var errorText = "";
+
+    if (typeof this.controller.args.status !== 'undefined') {
+        if(this.controller.args.status === "enabled") {
+            spawn("/bin/touch", [devmodeEnabledFilePath]);
+            success = true;
+        }
+        else if (this.controller.args.status === "disabled") {
+            /* when we turn off devmode we also disable all access methods */
+            setSystemdServiceStatus("android-tools-adbd", false);
+            spawn("/bin/rm", [devmodeEnabledFilePath]);
+            success = true;
+        }
+        else {
+            future.result = {
+                "returnValue": false,
+                "errorText": "Invalid value provided for status",
+                "errorCode": 0
+            };
+            return;
+        }
+    }
 
     if (typeof this.controller.args.usbDebugging !== 'undefined') {
         if (this.controller.args.usbDebugging === "enabled") {
@@ -50,22 +72,28 @@ DevModeSetStatusAssistant.prototype.run = function(future) {
             });
         }
         else {
-            errorText = "Invalid value provided for usbDebugging";
+            future.result = {
+                "returnValue": false,
+                "errorText": "Invalid value provided for status",
+                "errorCode": 0
+            };
+            return;
         }
     }
 
     future.result = {
         "returnValue": success,
-        "errorText": errorText
+        "errorText": errorText,
+        "errorCode": 0,
     };
 }
 
 DevModeGetStatusAssistant.prototype.run = function(future) {
-    var usbDebugging = fs.existsSync(usbDebuggingEnabledFilePath) ? "enabled" : "disabled";
+    var devModeStatus = fs.existsSync(devmodeEnabledFilePath) ? "enabled" : "disabled";
+    var usbDebuggingStatus = fs.existsSync(usbDebuggingEnabledFilePath) ? "enabled" : "disabled";
     future.result = {
         "returnValue": true,
-        /* for now report the devmode as always enabled */
-        "status": "enabled",
-        "usbDebugging": usbDebugging
+        "status": devModeStatus,
+        "usbDebugging": usbDebuggingStatus
     };
 }
