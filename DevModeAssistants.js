@@ -89,8 +89,16 @@ DevModeSetStatusAssistant.prototype.run = function(future) {
 }
 
 DevModeGetStatusAssistant.prototype.run = function(future) {
-    var devModeStatus = fs.existsSync(devmodeEnabledFilePath) ? "enabled" : "disabled";
-    var usbDebuggingStatus = fs.existsSync(usbDebuggingEnabledFilePath) ? "enabled" : "disabled";
+    var devModeStatus = "disabled";
+    var usbDebuggingStatus = "disabled";
+    try {
+        fs.accessSync(devmodeEnabledFilePath);
+        devModeStatus = "enabled";
+    } catch(e) {}
+    try {
+        fs.accessSync(usbDebuggingEnabledFilePath);
+        usbDebuggingStatus = "enabled";
+    } catch(e) {}
     future.result = {
         "returnValue": true,
         "status": devModeStatus,
