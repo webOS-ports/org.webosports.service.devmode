@@ -1,0 +1,6 @@
+{
+  "settings": [
+      "org.webosports.service.devmode/getStatus",
+      "org.webosports.service.devmode/setStatus"
+  ]
+}
