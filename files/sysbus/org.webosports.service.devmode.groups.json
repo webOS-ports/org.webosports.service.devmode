@@ -1,0 +1,4 @@
+{
+ "allowedNames": ["org.webosports.service.devmode"],
+ "devmode-service.operation": ["dev"]
+}
