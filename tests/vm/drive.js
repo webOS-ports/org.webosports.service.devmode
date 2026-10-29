@@ -1,5 +1,5 @@
 // Copyright (c) 2026 Herman van Hazendonk
-// SPDX-License-Identifier: GPL-2.0-or-later
+// SPDX-License-Identifier: GPL-3.0-or-later
 
 // VM side: every setStatus case from every start state, and getStatus, against whatever
 // org.webosports.service.devmode is installed. Writes one JSON report.

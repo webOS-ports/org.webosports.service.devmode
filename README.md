@@ -99,24 +99,29 @@ debugging is off.
 
 Copyright and License Information
 =================================
-Unless otherwise specified, all content, including all source code files and
-documentation files in this repository are:
+Copyright (C) 2013-2014 Simon Busch <morphis@gravedo.de>
+Copyright (c) 2026 Herman van Hazendonk <github.com@herrie.org>
 
-Copyright (C) 2013 Simon Busch <morphis@gravedo.de>
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version (SPDX: GPL-3.0-or-later). COPYING
+holds the licence text.
 
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License version 2 as
-published by the Free Software Foundation.
+The service was GPL-2.0-or-later ("version 2 of the License, or (at your
+option) any later version", as DevModeAssistants.js said); the rewrite
+takes it up under version 3, as that allows.
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-
-`lib/bus.js`, `lib/errors.js`, `lib/mojo.js` and `tests/palmbus.js` come
-from the contacts.linker and the cloud connectors and are under the Apache
-License, Version 2.0, as their headers say.
+lib/devmode.js ports the old DevModeAssistants.js and keeps Simon
+Busch's copyright line. lib/mojo.js reproduces the replies of
+mojoservice and Foundations, and keeps their notice: Copyright 2009-2012
+Hewlett-Packard Development Company, L.P., licensed under the Apache
+License, Version 2.0, which allows such code to be part of a GPL-3.0
+work. lib/bus.js and lib/errors.js (from luneos-synergy-connectors),
+service.js and the tests have no old lineage. files/ (the ACG and D-Bus
+service files) is kept from the old service as it was.

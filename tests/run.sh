@@ -1,6 +1,6 @@
 #!/bin/sh
 # Copyright (c) 2026 Herman van Hazendonk
-# SPDX-License-Identifier: GPL-2.0-or-later
+# SPDX-License-Identifier: GPL-3.0-or-later
 #
 # tests/run.sh: the unit tests, then the static analysis.
 #

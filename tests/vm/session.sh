@@ -1,6 +1,6 @@
 #!/bin/sh
 # Copyright (c) 2026 Herman van Hazendonk
-# SPDX-License-Identifier: GPL-2.0-or-later
+# SPDX-License-Identifier: GPL-3.0-or-later
 # session.sh <label> [new]: back up stock and the flags, optionally install the new service,
 # run drive.js, then put stock and the flags back exactly. Run under the VM lock.
 set -eu

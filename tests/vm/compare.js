@@ -1,5 +1,5 @@
 // Copyright (c) 2026 Herman van Hazendonk
-// SPDX-License-Identifier: GPL-2.0-or-later
+// SPDX-License-Identifier: GPL-3.0-or-later
 
 // node compare.js a.json b.json: every case's reply (text), final flags and the commands run and
 // flag files opened or removed (as sorted lists); prints the differences and a count.
