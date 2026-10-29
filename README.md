@@ -22,9 +22,10 @@ group):
   from which of the two flags are there.
 - `setStatus` takes `status` and/or `usbDebugging`, each `"enabled"` or
   `"disabled"`. `status:"disabled"` also stops adbd. It answers
-  `{"returnValue":true,"errorText":"","errorCode":0}`, or with
-  `"errorText":"Invalid value provided for status"` for a value that is
-  neither.
+  `{"returnValue":true,"errorText":"","errorCode":0}`, or
+  `{"returnValue":false,"errorText":"Invalid value provided for status","errorCode":0}`
+  (or `usbDebugging`) for a value that is neither, and then changes
+  nothing.
 
 The settings app's Developer Options page (org.webosports.app.settings,
 `DeveloperOptionsPage.qml`) is what calls it.

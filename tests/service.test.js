@@ -91,3 +91,17 @@ test('D4: a valid status with an invalid usbDebugging changes nothing', async ()
 		b.done();
 	}
 });
+
+test('D1: an invalid value is answered returnValue:false, everything else true', async () => {
+	const b = boot();
+	try {
+		assert.equal(await b.send('setStatus', '{"status":"on"}'),
+			'{"returnValue":false,"errorText":"Invalid value provided for status","errorCode":0}');
+		assert.equal(await b.send('setStatus', '{"usbDebugging":"disabled"}'),
+			'{"returnValue":true,"errorText":"","errorCode":0}');
+		assert.equal(await b.send('setStatus', '{}'), '{"returnValue":true,"errorText":"","errorCode":0}');
+		await b.settle();
+	} finally {
+		b.done();
+	}
+});

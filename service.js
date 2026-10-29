@@ -45,16 +45,37 @@ const IDLE_MS = 30000;
 function start({palmbus, exit, idleMs = IDLE_MS, log = console, devmode = {}} = {}) {
 	const bus = createBus({palmbus, name: NAME, exit, idleMs, log});
 	const methods = createDevmode(devmode);
+	/*
+		A result that refuses the call (returnValue:false with an errorText:
+		an invalid value) is answered so. mojoservice put returnValue:true
+		over it, as over every result (README: D1). The other results are
+		answered returnValue:true as before.
+	*/
+	const refusals = new WeakSet();
 	const table = {};
 	for (const name of ['setStatus', 'getStatus']) {
-		const m = method(NAME, name, args => methods[name](args), {log, subscribe: bus.subscribe});
+		const call = async args => {
+			const r = await methods[name](args);
+			if (r && r.returnValue === false && r.errorText) {
+				refusals.add(r);
+			}
+			return r;
+		};
+		const m = method(NAME, name, call, {log, subscribe: bus.subscribe});
 		table[name] = {
 			raw: true,
 			text: true,
 			timeoutMs: m.timeoutMs,
-			handler: (text, ctx) => {
+			handler: async (text, ctx) => {
 				const {args, reply} = mojoArgs(text);
-				return reply || m.handler(args, ctx);
+				if (reply) {
+					return reply;
+				}
+				const out = await m.handler(args, ctx);
+				if (refusals.has(out)) {
+					out.returnValue = false;
+				}
+				return out;
 			}
 		};
 	}

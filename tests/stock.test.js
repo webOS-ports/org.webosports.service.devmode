@@ -33,6 +33,10 @@ function expected(c) {
 	if (c.method === 'setStatus' && badUsb && !badStatus) {
 		want.reply = Object.assign({}, want.reply, {errorText: 'Invalid value provided for usbDebugging'});
 	}
+	// D1: an invalid value is answered returnValue:false.
+	if (c.method === 'setStatus' && (badStatus || badUsb)) {
+		want.reply = Object.assign({}, want.reply, {returnValue: false});
+	}
 	// D4: an invalid value anywhere changes nothing.
 	if (c.method === 'setStatus' && (badStatus || badUsb)) {
 		want.post = c.pre;
