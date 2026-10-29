@@ -21,7 +21,8 @@ group):
 - `getStatus` → `{"returnValue":true,"status":"enabled"|"disabled","usbDebugging":"enabled"|"disabled"}`,
   from which of the two flags are there.
 - `setStatus` takes `status` and/or `usbDebugging`, each `"enabled"` or
-  `"disabled"`. `status:"disabled"` also stops adbd. It answers
+  `"disabled"`. `status:"disabled"` also stops adbd and removes the USB
+  flag. It answers
   `{"returnValue":true,"errorText":"","errorCode":0}`, or
   `{"returnValue":false,"errorText":"Invalid value provided for status","errorCode":0}`
   (or `usbDebugging`) for a value that is neither, and then changes

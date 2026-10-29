@@ -110,7 +110,7 @@ test('D2: a getStatus sent the moment setStatus answers sees the change', async 
 	const b = boot();
 	try {
 		for (const [payload, status, usb] of [['{"status":"enabled","usbDebugging":"enabled"}', 'enabled', 'enabled'],
-			['{"status":"disabled"}', 'disabled', 'enabled'], ['{"usbDebugging":"disabled"}', 'disabled', 'disabled']]) {
+			['{"usbDebugging":"disabled"}', 'enabled', 'disabled'], ['{"status":"disabled"}', 'disabled', 'disabled']]) {
 			await b.ask('setStatus', payload);
 			const r = await b.ask('getStatus', '{}');
 			assert.deepEqual([r.status, r.usbDebugging], [status, usb], payload);
@@ -181,6 +181,24 @@ test('D6: a touch, rm or systemctl that is not there does not end the service', 
 		assert.deepEqual(r, {returnValue: true, errorText: '', errorCode: 0});
 		await b.settle();
 		assert.deepEqual((await b.ask('getStatus', '{}')).usbDebugging, 'enabled');
+	} finally {
+		b.done();
+	}
+});
+
+test('D5: turning developer mode off turns USB debugging off with it', async () => {
+	const b = boot();
+	try {
+		b.setState({dev: true, usb: true});
+		assert.deepEqual(await b.ask('setStatus', '{"status":"disabled"}'), {returnValue: true, errorText: '', errorCode: 0});
+		const r = await b.ask('getStatus', '{}');
+		assert.deepEqual([r.status, r.usbDebugging], ['disabled', 'disabled']);
+		await b.settle();
+		assert.deepEqual(b.exec, [['/bin/systemctl', 'stop', 'android-tools-adbd'], ['/bin/rm', '/var/luna/dev-mode-enabled']]);
+		b.setState({dev: true, usb: false});
+		await b.ask('setStatus', '{"status":"disabled","usbDebugging":"enabled"}');
+		assert.deepEqual(b.state(), {dev: false, usb: true}, 'asked for in the same call, it is written again');
+		await b.settle();
 	} finally {
 		b.done();
 	}

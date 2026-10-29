@@ -37,6 +37,12 @@ function expected(c) {
 	if (c.method === 'setStatus' && (badStatus || badUsb)) {
 		want.reply = Object.assign({}, want.reply, {returnValue: false});
 	}
+	// D5: turning developer mode off removes the USB flag too (a usbDebugging:"enabled" with it
+	// writes it again).
+	if (c.method === 'setStatus' && !badStatus && !badUsb && args.status === 'disabled' &&
+		args.usbDebugging !== 'enabled') {
+		want.post = Object.assign({}, want.post, {usb: false});
+	}
 	// D4: an invalid value anywhere changes nothing.
 	if (c.method === 'setStatus' && (badStatus || badUsb)) {
 		want.post = c.pre;
