@@ -195,7 +195,8 @@ test('D5: turning developer mode off turns USB debugging off with it', async () 
 		const r = await b.ask('getStatus', '{}');
 		assert.deepEqual([r.status, r.usbDebugging], ['disabled', 'disabled']);
 		await b.settle();
-		assert.deepEqual(b.exec, [['/bin/systemctl', 'stop', 'android-tools-adbd'], ['/bin/rm', '/var/luna/dev-mode-enabled']]);
+		assert.deepEqual(b.exec, [['/bin/systemctl', 'stop', 'android-tools-adbd'], ['/bin/systemctl', 'stop', 'sshd.socket'],
+			['/bin/rm', '/var/luna/dev-mode-enabled'], ['/bin/systemctl', 'restart', 'webapp-mgr.service']]);
 		b.setState({dev: true, usb: false});
 		await b.ask('setStatus', '{"status":"disabled","usbDebugging":"enabled"}');
 		assert.deepEqual(b.state(), {dev: false, usb: true}, 'asked for in the same call, it is written again');
@@ -212,6 +213,70 @@ test('D7: usbDebugging:"disabled" stops adbd when there is no USB flag to remove
 		assert.deepEqual(await b.ask('setStatus', '{"usbDebugging":"disabled"}'), {returnValue: true, errorText: '', errorCode: 0});
 		await b.settle();
 		assert.deepEqual(b.exec, [['/bin/systemctl', 'stop', 'android-tools-adbd']]);
+	} finally {
+		b.done();
+	}
+});
+
+test('D8: the USB flag is the one adbd\'s unit and the developer image use, /etc/usb-debugging-enabled', async () => {
+	// meta-oe's android-tools-adbd.service: ConditionPathExists=/etc/usb-debugging-enabled.
+	const seen = [];
+	const fs = {
+		accessSync: p => { seen.push(['access', p]); },
+		open: (p, mode, cb) => { seen.push(['open', p]); setImmediate(() => cb(null, 3)); },
+		close: (fd, cb) => setImmediate(() => cb(null)),
+		unlink: (p, cb) => { seen.push(['unlink', p]); setImmediate(() => cb(null)); }
+	};
+	const {EventEmitter} = require('events');
+	const spawn = () => new EventEmitter();
+	const {createDevmode, USB_FLAG} = require('../lib/devmode');
+	assert.equal(USB_FLAG, '/etc/usb-debugging-enabled');
+	const d = createDevmode({fs, spawn, log: {log() {}, error() {}}});
+	assert.equal(d.getStatus().usbDebugging, 'enabled');
+	await d.setStatus({usbDebugging: 'enabled'});
+	await d.setStatus({usbDebugging: 'disabled'});
+	assert.deepEqual(seen.filter(s => s[1] !== '/var/luna/dev-mode-enabled'), [
+		['access', '/etc/usb-debugging-enabled'],
+		['open', '/etc/usb-debugging-enabled'],
+		['unlink', '/etc/usb-debugging-enabled']
+	]);
+});
+
+test('D9: developer mode turns sshd on and off with it, and restarts WAM when it changes', async () => {
+	const b = boot();
+	const ok = {returnValue: true, errorText: '', errorCode: 0};
+	const run = async (pre, payload) => {
+		b.setState(pre);
+		b.exec.length = 0;
+		assert.deepEqual(await b.ask('setStatus', payload), ok);
+		await b.settle();
+		return b.exec.slice();
+	};
+	try {
+		assert.deepEqual(await run({dev: false, usb: false}, '{"status":"enabled"}'), [['/bin/touch', '/var/luna/dev-mode-enabled'],
+			['/bin/systemctl', 'start', 'sshd.socket'], ['/bin/systemctl', 'restart', 'webapp-mgr.service']]);
+		assert.deepEqual(await run({dev: true, usb: false}, '{"status":"enabled"}'), [['/bin/touch', '/var/luna/dev-mode-enabled'],
+			['/bin/systemctl', 'start', 'sshd.socket']], 'on already: WAM is left running');
+		assert.deepEqual(await run({dev: true, usb: false}, '{"status":"disabled"}'), [['/bin/systemctl', 'stop', 'android-tools-adbd'],
+			['/bin/systemctl', 'stop', 'sshd.socket'], ['/bin/rm', '/var/luna/dev-mode-enabled'],
+			['/bin/systemctl', 'restart', 'webapp-mgr.service']]);
+		assert.deepEqual(await run({dev: false, usb: false}, '{"status":"disabled"}'), [['/bin/systemctl', 'stop', 'android-tools-adbd'],
+			['/bin/systemctl', 'stop', 'sshd.socket'], ['/bin/rm', '/var/luna/dev-mode-enabled']], 'off already: WAM is left running');
+		assert.deepEqual(await run({dev: false, usb: false}, '{"usbDebugging":"enabled"}'), [['/bin/systemctl', 'start', 'android-tools-adbd']],
+			'usbDebugging alone leaves sshd and WAM be');
+	} finally {
+		b.done();
+	}
+});
+
+test('D9: a developer mode flag that could not be removed does not restart WAM', async () => {
+	const b = boot({missing: ['/bin/rm']});
+	try {
+		b.setState({dev: true, usb: false});
+		const r = await b.ask('setStatus', '{"status":"disabled"}');
+		assert.equal(r.returnValue, false);
+		await b.settle();
+		assert.ok(!b.exec.some(a => a[1] === 'restart'), JSON.stringify(b.exec));
 	} finally {
 		b.done();
 	}
