@@ -120,3 +120,68 @@ test('D2: a getStatus sent the moment setStatus answers sees the change', async 
 		b.done();
 	}
 });
+
+test('D6: a flag that cannot be written or removed is answered as a failure', {skip: process.getuid && process.getuid() === 0 ?
+	'root writes into a read-only directory' : false}, async () => {
+	const b = boot();
+	const luna = require('path').dirname(b.flags.dev);
+	try {
+		require('fs').chmodSync(luna, 0o555);
+		let r = await b.ask('setStatus', '{"status":"enabled","usbDebugging":"enabled"}');
+		assert.deepEqual(r, {returnValue: false, errorText: 'Could not write ' + b.flags.dev, errorCode: 0});
+		assert.deepEqual(b.state(), {dev: false, usb: false}, 'usbDebugging is not acted on after it');
+		require('fs').chmodSync(luna, 0o755);
+		b.setState({dev: true, usb: false});
+		require('fs').chmodSync(luna, 0o555);
+		r = await b.ask('setStatus', '{"status":"disabled"}');
+		assert.deepEqual(r, {returnValue: false, errorText: 'Could not remove ' + b.flags.dev, errorCode: 0});
+		await b.settle();
+	} finally {
+		require('fs').chmodSync(luna, 0o755);
+		b.done();
+	}
+});
+
+test('D6: the USB flag\'s open or unlink failing is answered as a failure; a flag not there is off', async () => {
+	const fail = code => Object.assign(new Error(code + ': refused'), {code});
+	const b = boot({fsWrap: real => Object.assign(Object.create(real), {
+		open: (p, mode, cb) => setImmediate(() => cb(fail('EACCES'))),
+		unlink: (p, cb) => setImmediate(() => cb(p.endsWith('usb-debugging-enabled') && real.existsSync(p) ? fail('EPERM') :
+			Object.assign(new Error('ENOENT'), {code: 'ENOENT'})))
+	})});
+	try {
+		let r = await b.ask('setStatus', '{"usbDebugging":"enabled"}');
+		assert.equal(r.returnValue, false);
+		assert.equal(r.errorText, 'Could not write ' + b.flags.usb + ': EACCES: refused');
+		b.setState({dev: false, usb: true});
+		r = await b.ask('setStatus', '{"usbDebugging":"disabled"}');
+		assert.equal(r.errorText, 'Could not remove ' + b.flags.usb + ': EPERM: refused');
+		b.setState({dev: false, usb: false});
+		r = await b.ask('setStatus', '{"usbDebugging":"disabled"}');
+		assert.deepEqual(r, {returnValue: true, errorText: '', errorCode: 0});
+		await b.settle();
+		assert.deepEqual(b.exec, [], 'adbd is not started or stopped');
+	} finally {
+		b.done();
+	}
+});
+
+test('D6: a touch, rm or systemctl that is not there does not end the service', async () => {
+	const b = boot({missing: ['/bin/touch', '/bin/rm'], systemctl: (args, child) => setImmediate(() => {
+		child.emit('error', Object.assign(new Error('spawn /bin/systemctl ENOENT'), {code: 'ENOENT'}));
+		child.emit('exit', -2, null);
+	})});
+	try {
+		let r = await b.ask('setStatus', '{"status":"enabled"}');
+		assert.deepEqual(r, {returnValue: false, errorText: 'Could not write ' + b.flags.dev, errorCode: 0});
+		b.setState({dev: true, usb: false});
+		r = await b.ask('setStatus', '{"status":"disabled"}');
+		assert.deepEqual(r, {returnValue: false, errorText: 'Could not remove ' + b.flags.dev, errorCode: 0});
+		r = await b.ask('setStatus', '{"usbDebugging":"enabled"}');
+		assert.deepEqual(r, {returnValue: true, errorText: '', errorCode: 0});
+		await b.settle();
+		assert.deepEqual((await b.ask('getStatus', '{}')).usbDebugging, 'enabled');
+	} finally {
+		b.done();
+	}
+});

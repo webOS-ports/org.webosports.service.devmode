@@ -26,8 +26,9 @@ const quiet = {log() {}, warn() {}, error() {}, info() {}};
 /*
 	systemctl: what a call to it does, (args, child) -> nothing; by default
 	it exits 0 at once. fsWrap: (realFs) -> the fs the service is given.
+	missing: commands (touch, rm) that are not there.
 */
-function boot({systemctl, fsWrap} = {}) {
+function boot({systemctl, fsWrap, missing = []} = {}) {
 	const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'devmode-test-'));
 	fs.mkdirSync(path.join(dir, 'luna'));
 	const flags = {dev: path.join(dir, 'luna', 'dev-mode-enabled'), usb: path.join(dir, 'usb-debugging-enabled')};
@@ -50,8 +51,11 @@ function boot({systemctl, fsWrap} = {}) {
 			}
 			return child;
 		}
-		const child = childProcess.spawn(cmd, args, {stdio: 'ignore'});
-		child.on('exit', () => running--);
+		// A command that is not there, as on a build without it.
+		const child = childProcess.spawn(missing.includes(cmd) ? path.join(dir, 'no' + cmd) : cmd, args, {stdio: 'ignore'});
+		// 'close' comes after 'exit', and after the 'error' of one that could not start; no 'error'
+		// listener here, so the service's own is what keeps that from ending the process.
+		child.on('close', () => running--);
 		return child;
 	}
 

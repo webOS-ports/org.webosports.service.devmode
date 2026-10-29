@@ -44,10 +44,10 @@ const IDLE_MS = 30000;
 */
 function start({palmbus, exit, idleMs = IDLE_MS, log = console, devmode = {}} = {}) {
 	const bus = createBus({palmbus, name: NAME, exit, idleMs, log});
-	const methods = createDevmode(devmode);
+	const methods = createDevmode(Object.assign({log}, devmode));
 	/*
 		A result that refuses the call (returnValue:false with an errorText:
-		an invalid value) is answered so. mojoservice put returnValue:true
+		an invalid value, or a change that could not be made) is answered so. mojoservice put returnValue:true
 		over it, as over every result (README: D1). The other results are
 		answered returnValue:true as before.
 	*/
