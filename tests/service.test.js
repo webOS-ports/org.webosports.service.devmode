@@ -57,11 +57,13 @@ test('an $activity an app passes is monitored, as mojoservice did', async () => 
 	}
 });
 
-test('it registers its two methods and the bus\'s quit and info', () => {
+test('it registers its methods and the bus\'s quit and info', () => {
 	const b = boot();
 	try {
 		assert.deepEqual(b.pb.services['org.webosports.service.devmode'].methods.sort(),
-			['/getStatus', '/info', '/quit', '/setStatus']);
+			['/adbAuthRequests', '/addAuthorizedKey', '/getAccessStatus', '/getStatus', '/info',
+				'/listAuthorizedKeys', '/quit', '/removeAuthorizedKey', '/respondAdbAuth', '/revokeAdbKeys',
+				'/setDevPassword', '/setStatus', '/sshOverWifi']);
 	} finally {
 		b.done();
 	}

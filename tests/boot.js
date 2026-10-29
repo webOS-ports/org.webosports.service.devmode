@@ -14,6 +14,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const {EventEmitter} = require('events');
+const {PassThrough} = require('stream');
 const childProcess = require('child_process');
 const {createPalmbus} = require('./palmbus');
 
@@ -28,7 +29,7 @@ const quiet = {log() {}, warn() {}, error() {}, info() {}};
 	it exits 0 at once. fsWrap: (realFs) -> the fs the service is given.
 	missing: commands (touch, rm) that are not there.
 */
-function boot({systemctl, fsWrap, missing = [], pre = {}} = {}) {
+function boot({systemctl, fsWrap, missing = [], pre = {}, adbauth = {}, access = {}, onSpawn} = {}) {
 	const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'devmode-test-'));
 	fs.mkdirSync(path.join(dir, 'luna'));
 	const flags = {dev: path.join(dir, 'luna', 'dev-mode-enabled'), usb: path.join(dir, 'usb-debugging-enabled'),
@@ -40,6 +41,13 @@ function boot({systemctl, fsWrap, missing = [], pre = {}} = {}) {
 		}
 	}
 	const exec = [];
+	const files = {
+		socket: path.join(dir, 'adbd-auth'),
+		adbKeys: path.join(dir, 'adbd', 'adb_keys'),
+		authorizedKeys: path.join(dir, 'root', '.ssh', 'authorized_keys'),
+		shadow: path.join(dir, 'shadow'),
+		sshWifi: path.join(dir, 'luna', 'ssh-wifi-enabled')
+	};
 	let running = 0;
 
 	// The command as it would have been on the device: the test paths put back to the real ones.
@@ -48,6 +56,25 @@ function boot({systemctl, fsWrap, missing = [], pre = {}} = {}) {
 	function spawn(cmd, args) {
 		exec.push([cmd].concat(args.map(real)));
 		running++;
+		// chpasswd and the firewall helper do not run either: onSpawn(cmd, args, child, input)
+		// ends them (child.emit('close', code)); without onSpawn they exit 0.
+		if (cmd === '/usr/sbin/chpasswd' || cmd === '/usr/sbin/luneos-devmode-firewall') {
+			const child = new EventEmitter();
+			child.stdin = new PassThrough();
+			child.stdout = new PassThrough();
+			child.stderr = new PassThrough();
+			let input = '';
+			child.stdin.on('data', d => { input += d; });
+			child.on('close', () => running--);
+			child.stdin.on('finish', () => {
+				if (onSpawn) {
+					onSpawn(cmd, args, child, input);
+				} else {
+					setImmediate(() => child.emit('close', 0));
+				}
+			});
+			return child;
+		}
 		if (cmd === '/bin/systemctl') {
 			const child = new EventEmitter();
 			child.on('exit', () => running--);
@@ -70,14 +97,17 @@ function boot({systemctl, fsWrap, missing = [], pre = {}} = {}) {
 	const {start} = require(path.join(SERVICE, 'service'));
 	const service = start({palmbus: pb, idleMs: 0, log: quiet, exit() {},
 		devmode: {fs: fsWrap ? fsWrap(fs) : fs, spawn, devmodeFlag: flags.dev, usbFlag: flags.usb,
-		legacyUsbFlag: flags.legacyUsb}});
+			legacyUsbFlag: flags.legacyUsb},
+		adbauth: Object.assign({socketPath: files.socket, keysPath: files.adbKeys, reconnectMs: 20}, adbauth),
+		access: Object.assign({spawn, authorizedKeys: files.authorizedKeys, shadow: files.shadow,
+			sshWifiFlag: files.sshWifi}, access)});
 
 	function exists(f) {
 		return fs.existsSync(f);
 	}
 
 	return {
-		dir, flags, exec, service, pb,
+		dir, flags, files, exec, service, pb,
 		state() {
 			return {dev: exists(flags.dev), usb: exists(flags.usb)};
 		},
@@ -111,6 +141,7 @@ function boot({systemctl, fsWrap, missing = [], pre = {}} = {}) {
 			throw new Error('still running after 2 s');
 		},
 		done() {
+			service.adb.stop();
 			service.bus.stop();
 			fs.rmSync(dir, {recursive: true, force: true});
 		}

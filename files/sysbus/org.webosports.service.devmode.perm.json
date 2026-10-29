@@ -1,6 +1,7 @@
 {
     "org.webosports.service.devmode": [
         "devmode-service.operation",
-        "activity.operation"
+        "activity.operation",
+        "display.query"
     ]
 }
