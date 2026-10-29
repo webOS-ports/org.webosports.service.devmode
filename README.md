@@ -13,7 +13,7 @@ flag file:
 | | |
 |---|---|
 | `/var/luna/dev-mode-enabled` | developer mode |
-| `/var/usb-debugging-enabled` | USB debugging; `android-tools-adbd` is started and stopped with it |
+| `/etc/usb-debugging-enabled` | USB debugging; `android-tools-adbd` is started and stopped with it |
 
 Its two methods, both private (`devmode-service.operation`, for the `dev`
 group):
@@ -81,6 +81,11 @@ them so:
   service.
 - D7: `usbDebugging:"disabled"` stops adbd only when the USB flag was
   there to remove.
+- D8: the USB flag was `/var/usb-debugging-enabled`, but
+  `android-tools-adbd` starts only when `/etc/usb-debugging-enabled` is
+  there (`ConditionPathExists` in meta-oe's unit), and that is the one
+  `luneos-dev-image.bb` writes. Turning USB debugging on never started
+  adbd, and on a developer image `getStatus` said it was off.
 
 Deliberately different from the old service, and why:
 
@@ -91,11 +96,6 @@ Deliberately different from the old service, and why:
   activitymanager calls), as mojoservice did.
 - mojoservice's `__info`, `__quit` and `__gc` are now the bus's `info` and
   `quit`; no caller of this service uses them.
-
-Not this service's to mend: `luneos-dev-image.bb` (meta-webos-ports)
-writes `/etc/usb-debugging-enabled`, while this service has always used
-`/var/usb-debugging-enabled`, so on a developer image `getStatus` says USB
-debugging is off.
 
 Copyright and License Information
 =================================

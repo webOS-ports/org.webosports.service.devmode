@@ -216,3 +216,27 @@ test('D7: usbDebugging:"disabled" stops adbd when there is no USB flag to remove
 		b.done();
 	}
 });
+
+test('D8: the USB flag is the one adbd\'s unit and the developer image use, /etc/usb-debugging-enabled', async () => {
+	// meta-oe's android-tools-adbd.service: ConditionPathExists=/etc/usb-debugging-enabled.
+	const seen = [];
+	const fs = {
+		accessSync: p => { seen.push(['access', p]); },
+		open: (p, mode, cb) => { seen.push(['open', p]); setImmediate(() => cb(null, 3)); },
+		close: (fd, cb) => setImmediate(() => cb(null)),
+		unlink: (p, cb) => { seen.push(['unlink', p]); setImmediate(() => cb(null)); }
+	};
+	const {EventEmitter} = require('events');
+	const spawn = () => new EventEmitter();
+	const {createDevmode, USB_FLAG} = require('../lib/devmode');
+	assert.equal(USB_FLAG, '/etc/usb-debugging-enabled');
+	const d = createDevmode({fs, spawn, log: {log() {}, error() {}}});
+	assert.equal(d.getStatus().usbDebugging, 'enabled');
+	await d.setStatus({usbDebugging: 'enabled'});
+	await d.setStatus({usbDebugging: 'disabled'});
+	assert.deepEqual(seen.filter(s => s[1] !== '/var/luna/dev-mode-enabled'), [
+		['access', '/etc/usb-debugging-enabled'],
+		['open', '/etc/usb-debugging-enabled'],
+		['unlink', '/etc/usb-debugging-enabled']
+	]);
+});

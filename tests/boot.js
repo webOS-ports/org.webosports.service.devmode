@@ -19,7 +19,7 @@ const {createPalmbus} = require('./palmbus');
 
 const SERVICE = path.join(__dirname, '..');
 const NAME = 'org.webosports.service.devmode';
-const REAL = {dev: '/var/luna/dev-mode-enabled', usb: '/var/usb-debugging-enabled'};
+const REAL = {dev: '/var/luna/dev-mode-enabled', usb: '/etc/usb-debugging-enabled'};
 
 const quiet = {log() {}, warn() {}, error() {}, info() {}};
 
