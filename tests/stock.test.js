@@ -59,6 +59,10 @@ test('every stock case, from every state', async t => {
 				const want = expected(c);
 				const text = await b.send(c.method, c.payload);
 				assert.equal(text, JSON.stringify(want.reply));
+				if (c.method === 'setStatus') {
+					// D2: the flags are as they will stay when the reply comes.
+					assert.deepEqual(b.state(), want.post, 'flags at the reply');
+				}
 				await b.settle();
 				if (c.method === 'setStatus') {
 					assert.deepEqual(b.state(), want.post);

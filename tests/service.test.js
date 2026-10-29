@@ -105,3 +105,18 @@ test('D1: an invalid value is answered returnValue:false, everything else true',
 		b.done();
 	}
 });
+
+test('D2: a getStatus sent the moment setStatus answers sees the change', async () => {
+	const b = boot();
+	try {
+		for (const [payload, status, usb] of [['{"status":"enabled","usbDebugging":"enabled"}', 'enabled', 'enabled'],
+			['{"status":"disabled"}', 'disabled', 'enabled'], ['{"usbDebugging":"disabled"}', 'disabled', 'disabled']]) {
+			await b.ask('setStatus', payload);
+			const r = await b.ask('getStatus', '{}');
+			assert.deepEqual([r.status, r.usbDebugging], [status, usb], payload);
+		}
+		await b.settle();
+	} finally {
+		b.done();
+	}
+});
