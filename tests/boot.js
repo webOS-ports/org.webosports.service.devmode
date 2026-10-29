@@ -19,7 +19,7 @@ const {createPalmbus} = require('./palmbus');
 
 const SERVICE = path.join(__dirname, '..');
 const NAME = 'org.webosports.service.devmode';
-const REAL = {dev: '/var/luna/dev-mode-enabled', usb: '/etc/usb-debugging-enabled'};
+const REAL = {dev: '/var/luna/dev-mode-enabled', usb: '/var/usb-debugging-enabled'};
 
 const quiet = {log() {}, warn() {}, error() {}, info() {}};
 
@@ -28,10 +28,17 @@ const quiet = {log() {}, warn() {}, error() {}, info() {}};
 	it exits 0 at once. fsWrap: (realFs) -> the fs the service is given.
 	missing: commands (touch, rm) that are not there.
 */
-function boot({systemctl, fsWrap, missing = []} = {}) {
+function boot({systemctl, fsWrap, missing = [], pre = {}} = {}) {
 	const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'devmode-test-'));
 	fs.mkdirSync(path.join(dir, 'luna'));
-	const flags = {dev: path.join(dir, 'luna', 'dev-mode-enabled'), usb: path.join(dir, 'usb-debugging-enabled')};
+	const flags = {dev: path.join(dir, 'luna', 'dev-mode-enabled'), usb: path.join(dir, 'usb-debugging-enabled'),
+		legacyUsb: path.join(dir, 'etc-usb-debugging-enabled')};
+	// pre: the flags there before the service starts ({dev, usb, legacyUsb}).
+	for (const k of Object.keys(pre)) {
+		if (pre[k]) {
+			fs.writeFileSync(flags[k], '');
+		}
+	}
 	const exec = [];
 	let running = 0;
 
@@ -62,7 +69,8 @@ function boot({systemctl, fsWrap, missing = []} = {}) {
 	const pb = createPalmbus(async () => ({returnValue: true}));
 	const {start} = require(path.join(SERVICE, 'service'));
 	const service = start({palmbus: pb, idleMs: 0, log: quiet, exit() {},
-		devmode: {fs: fsWrap ? fsWrap(fs) : fs, spawn, devmodeFlag: flags.dev, usbFlag: flags.usb}});
+		devmode: {fs: fsWrap ? fsWrap(fs) : fs, spawn, devmodeFlag: flags.dev, usbFlag: flags.usb,
+		legacyUsbFlag: flags.legacyUsb}});
 
 	function exists(f) {
 		return fs.existsSync(f);

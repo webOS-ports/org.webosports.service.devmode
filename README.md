@@ -13,7 +13,7 @@ flag file:
 | | |
 |---|---|
 | `/var/luna/dev-mode-enabled` | developer mode |
-| `/etc/usb-debugging-enabled` | USB debugging; `android-tools-adbd` is started and stopped with it |
+| `/var/usb-debugging-enabled` | USB debugging; `android-tools-adbd` is started and stopped with it |
 
 Its two methods, both private (`devmode-service.operation`, for the `dev`
 group):
@@ -84,10 +84,20 @@ them so:
 - D7: `usbDebugging:"disabled"` stops adbd only when the USB flag was
   there to remove.
 - D8: the USB flag was `/var/usb-debugging-enabled`, but
-  `android-tools-adbd` starts only when `/etc/usb-debugging-enabled` is
-  there (`ConditionPathExists` in meta-oe's unit), and that is the one
-  `luneos-dev-image.bb` writes. Turning USB debugging on never started
-  adbd, and on a developer image `getStatus` said it was off.
+  `android-tools-adbd` started only when `/etc/usb-debugging-enabled` was
+  there (`ConditionPathExists` in meta-oe's unit), and that was the one
+  `luneos-dev-image.bb` wrote. Turning USB debugging on never started
+  adbd, and on a developer image `getStatus` said it was off. The flag
+  went to `/etc` for a while (0583a97); it is `/var/usb-debugging-enabled`
+  again, and meta-webos-ports now matches: a drop-in for adbd's unit asks
+  for `/var/usb-debugging-enabled` and `/var/luna/dev-mode-enabled`, and
+  `luneos-dev-image` and `radon-usb-debug` write the `/var` flag. `/etc`
+  is the image's: read-only on Halium release images and with OSTree, and
+  put back by an update.
+- D10: an `/etc/usb-debugging-enabled` from an older image means USB
+  debugging was on. When the service starts it writes the `/var` flag,
+  starts adbd (developer mode on) and removes the `/etc` one, where `/etc`
+  can be written; on a read-only `/etc` it stays, and changes nothing more.
 - D9: turning developer mode off left sshd and WAM's DevTools port
   (`--remote-debugging-port=9998`) on, although the old code says "when
   we turn off devmode we also disable all access methods". Now:

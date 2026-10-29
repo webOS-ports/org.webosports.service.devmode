@@ -64,6 +64,7 @@ function start({palmbus, exit, idleMs = IDLE_MS, log = console, devmode = {}} = 
 		};
 	}
 	bus.serve(table);
+	methods.migrateUsbFlag();
 	log.log(NAME + ': up (node ' + process.version + ')');
 	return {bus, methods};
 }

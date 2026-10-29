@@ -10,7 +10,7 @@ mkdir -p $R/state
 [ -d $R/stock ] || cp -a $T $R/stock
 # flags as found (cp -a keeps mode and times)
 rm -f $R/state/*
-for f in /var/luna/dev-mode-enabled /etc/usb-debugging-enabled; do
+for f in /var/luna/dev-mode-enabled /var/usb-debugging-enabled; do
 	[ -e $f ] && cp -a $f $R/state/ || true
 done
 ls -la --full-time $R/state/ > $R/state.before
@@ -45,9 +45,9 @@ node $R/drive.js "$R/$1.json" || echo "drive failed"
 quit
 rm -rf $T; cp -a $R/stock $T
 for f in dev-mode-enabled usb-debugging-enabled; do
-	d=/etc; [ $f = dev-mode-enabled ] && d=/var/luna
+	d=/var; [ $f = dev-mode-enabled ] && d=/var/luna
 	rm -f $d/$f
 	[ -e $R/state/$f ] && cp -a $R/state/$f $d/$f || true
 done
-ls -la --full-time /var/luna/dev-mode-enabled /etc/usb-debugging-enabled 2>&1
+ls -la --full-time /var/luna/dev-mode-enabled /var/usb-debugging-enabled 2>&1
 echo "restored stock"

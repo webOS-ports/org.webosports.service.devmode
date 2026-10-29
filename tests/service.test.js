@@ -218,8 +218,9 @@ test('D7: usbDebugging:"disabled" stops adbd when there is no USB flag to remove
 	}
 });
 
-test('D8: the USB flag is the one adbd\'s unit and the developer image use, /etc/usb-debugging-enabled', async () => {
-	// meta-oe's android-tools-adbd.service: ConditionPathExists=/etc/usb-debugging-enabled.
+test('D8: the USB flag is the one adbd\'s unit and the developer image use, /var/usb-debugging-enabled', async () => {
+	// meta-webos-ports' drop-in for android-tools-adbd.service: ConditionPathExists=/var/usb-debugging-enabled
+	// (and /var/luna/dev-mode-enabled).
 	const seen = [];
 	const fs = {
 		accessSync: p => { seen.push(['access', p]); },
@@ -230,15 +231,15 @@ test('D8: the USB flag is the one adbd\'s unit and the developer image use, /etc
 	const {EventEmitter} = require('events');
 	const spawn = () => new EventEmitter();
 	const {createDevmode, USB_FLAG} = require('../lib/devmode');
-	assert.equal(USB_FLAG, '/etc/usb-debugging-enabled');
+	assert.equal(USB_FLAG, '/var/usb-debugging-enabled');
 	const d = createDevmode({fs, spawn, log: {log() {}, error() {}}});
 	assert.equal(d.getStatus().usbDebugging, 'enabled');
 	await d.setStatus({usbDebugging: 'enabled'});
 	await d.setStatus({usbDebugging: 'disabled'});
 	assert.deepEqual(seen.filter(s => s[1] !== '/var/luna/dev-mode-enabled'), [
-		['access', '/etc/usb-debugging-enabled'],
-		['open', '/etc/usb-debugging-enabled'],
-		['unlink', '/etc/usb-debugging-enabled']
+		['access', '/var/usb-debugging-enabled'],
+		['open', '/var/usb-debugging-enabled'],
+		['unlink', '/var/usb-debugging-enabled']
 	]);
 });
 
@@ -277,6 +278,86 @@ test('D9: a developer mode flag that could not be removed does not restart WAM',
 		assert.equal(r.returnValue, false);
 		await b.settle();
 		assert.ok(!b.exec.some(a => a[1] === 'restart'), JSON.stringify(b.exec));
+	} finally {
+		b.done();
+	}
+});
+
+test('D10: an /etc/usb-debugging-enabled from an older image is taken over to /var once', async () => {
+	const fs = require('fs');
+	const path = require('path');
+	const {createDevmode} = require('../lib/devmode');
+	const os = require('os');
+	const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'devmode-d10-'));
+	const f = {dev: path.join(dir, 'dev'), usb: path.join(dir, 'usb'), legacy: path.join(dir, 'etc-usb')};
+	const started = [];
+	const {EventEmitter} = require('events');
+	const spawn = (cmd, args) => {
+		started.push([cmd].concat(args));
+		const c = new EventEmitter();
+		setImmediate(() => c.emit('exit', 0));
+		return c;
+	};
+	const quiet = {log() {}, error() {}};
+	const make = (fsImpl = fs) => createDevmode({fs: fsImpl, spawn, log: quiet, devmodeFlag: f.dev, usbFlag: f.usb, legacyUsbFlag: f.legacy});
+	try {
+		// Nothing to take over.
+		assert.equal(make().migrateUsbFlag(), false);
+		assert.equal(fs.existsSync(f.usb), false);
+
+		// Taken over: /var written, /etc removed, adbd started (developer mode is on).
+		fs.writeFileSync(f.dev, '');
+		fs.writeFileSync(f.legacy, '');
+		const d = make();
+		assert.equal(d.migrateUsbFlag(), true);
+		assert.deepEqual([fs.existsSync(f.usb), fs.existsSync(f.legacy)], [true, false]);
+		assert.equal(d.getStatus().usbDebugging, 'enabled');
+		assert.deepEqual(started, [['/bin/systemctl', 'start', 'android-tools-adbd']]);
+
+		// A read-only /etc: the old flag stays, nothing fails, and the next start does not start adbd again.
+		fs.rmSync(f.usb);
+		fs.writeFileSync(f.legacy, '');
+		started.length = 0;
+		const ro = Object.assign(Object.create(fs), {unlinkSync: p => {
+			if (p === f.legacy) {
+				throw Object.assign(new Error('read-only file system'), {code: 'EROFS'});
+			}
+			return fs.unlinkSync(p);
+		}});
+		assert.equal(make(ro).migrateUsbFlag(), true);
+		assert.deepEqual([fs.existsSync(f.usb), fs.existsSync(f.legacy)], [true, true]);
+		assert.equal(make(ro).migrateUsbFlag(), true);
+		assert.equal(started.length, 1);
+
+		// Turned off since: the old flag must not turn it back on. Off removes the /var flag, and
+		// the /etc one is gone wherever it could be removed; where it could not, it is taken over
+		// again, which is why it is removed whenever possible.
+		fs.rmSync(f.legacy);
+		await make().setStatus({usbDebugging: 'disabled'});
+		assert.equal(make().migrateUsbFlag(), false);
+		assert.equal(fs.existsSync(f.usb), false);
+
+		// /var cannot be written: /etc is left as it was, nothing fails.
+		fs.writeFileSync(f.legacy, '');
+		const noVar = Object.assign(Object.create(fs), {openSync: () => {
+			throw Object.assign(new Error('no space'), {code: 'ENOSPC'});
+		}});
+		assert.equal(make(noVar).migrateUsbFlag(), false);
+		assert.equal(fs.existsSync(f.legacy), true);
+	} finally {
+		fs.rmSync(dir, {recursive: true, force: true});
+	}
+});
+
+test('D10: the service takes the old flag over when it starts', async () => {
+	const fs = require('fs');
+	const b = boot({pre: {legacyUsb: true, dev: true}});
+	try {
+		assert.deepEqual(b.state(), {dev: true, usb: true});
+		assert.equal(fs.existsSync(b.flags.legacyUsb), false);
+		assert.deepEqual((await b.ask('getStatus', '{}')).usbDebugging, 'enabled');
+		await b.settle();
+		assert.deepEqual(b.exec, [['/bin/systemctl', 'start', 'android-tools-adbd']]);
 	} finally {
 		b.done();
 	}
