@@ -77,3 +77,17 @@ test('D3: an invalid usbDebugging is answered as one', async () => {
 		b.done();
 	}
 });
+
+test('D4: a valid status with an invalid usbDebugging changes nothing', async () => {
+	const b = boot();
+	try {
+		b.setState({dev: true, usb: true});
+		const r = await b.ask('setStatus', '{"status":"disabled","usbDebugging":"off"}');
+		assert.equal(r.errorText, 'Invalid value provided for usbDebugging');
+		await b.settle();
+		assert.deepEqual(b.state(), {dev: true, usb: true});
+		assert.deepEqual(b.exec, []);
+	} finally {
+		b.done();
+	}
+});
