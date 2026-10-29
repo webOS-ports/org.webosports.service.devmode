@@ -19,8 +19,21 @@ const assert = require('node:assert/strict');
 const {boot} = require('./boot');
 const {cases} = require('./stock-vm.json');
 
+const VALUES = ['enabled', 'disabled'];
+
 function expected(c) {
-	return {reply: c.reply, post: c.post, exec: c.exec};
+	const want = {reply: c.reply, post: c.post, exec: c.exec};
+	let args = {};
+	try {
+		args = JSON.parse(c.payload) || {};
+	} catch (e) { /* none */ }
+	const badStatus = args.status !== undefined && !VALUES.includes(args.status);
+	const badUsb = args.usbDebugging !== undefined && !VALUES.includes(args.usbDebugging);
+	// D3: an invalid usbDebugging is named as such.
+	if (c.method === 'setStatus' && badUsb && !badStatus) {
+		want.reply = Object.assign({}, want.reply, {errorText: 'Invalid value provided for usbDebugging'});
+	}
+	return want;
 }
 
 const sorted = list => list.map(a => JSON.stringify(a)).sort();

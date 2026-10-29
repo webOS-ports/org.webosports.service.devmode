@@ -66,3 +66,14 @@ test('it registers its two methods and the bus\'s quit and info', () => {
 		b.done();
 	}
 });
+
+test('D3: an invalid usbDebugging is answered as one', async () => {
+	const b = boot();
+	try {
+		const r = await b.ask('setStatus', '{"usbDebugging":"on"}');
+		assert.equal(r.errorText, 'Invalid value provided for usbDebugging');
+		assert.equal((await b.ask('setStatus', '{"status":"on"}')).errorText, 'Invalid value provided for status');
+	} finally {
+		b.done();
+	}
+});
