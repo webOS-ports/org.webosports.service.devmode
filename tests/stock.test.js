@@ -43,6 +43,10 @@ function expected(c) {
 		args.usbDebugging !== 'enabled') {
 		want.post = Object.assign({}, want.post, {usb: false});
 	}
+	// D7: usbDebugging:"disabled" stops adbd with no USB flag to remove too.
+	if (c.method === 'setStatus' && !badStatus && !badUsb && args.usbDebugging === 'disabled' && !c.pre.usb) {
+		want.exec = want.exec.concat([['/bin/systemctl', 'stop', 'android-tools-adbd']]);
+	}
 	// D4: an invalid value anywhere changes nothing.
 	if (c.method === 'setStatus' && (badStatus || badUsb)) {
 		want.post = c.pre;

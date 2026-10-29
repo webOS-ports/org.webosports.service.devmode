@@ -160,7 +160,8 @@ test('D6: the USB flag\'s open or unlink failing is answered as a failure; a fla
 		r = await b.ask('setStatus', '{"usbDebugging":"disabled"}');
 		assert.deepEqual(r, {returnValue: true, errorText: '', errorCode: 0});
 		await b.settle();
-		assert.deepEqual(b.exec, [], 'adbd is not started or stopped');
+		assert.deepEqual(b.exec, [['/bin/systemctl', 'stop', 'android-tools-adbd']],
+			'adbd is not started; it is stopped only by the call that found no flag (D7)');
 	} finally {
 		b.done();
 	}
@@ -199,6 +200,18 @@ test('D5: turning developer mode off turns USB debugging off with it', async () 
 		await b.ask('setStatus', '{"status":"disabled","usbDebugging":"enabled"}');
 		assert.deepEqual(b.state(), {dev: false, usb: true}, 'asked for in the same call, it is written again');
 		await b.settle();
+	} finally {
+		b.done();
+	}
+});
+
+test('D7: usbDebugging:"disabled" stops adbd when there is no USB flag to remove', async () => {
+	const b = boot();
+	try {
+		b.setState({dev: true, usb: false});
+		assert.deepEqual(await b.ask('setStatus', '{"usbDebugging":"disabled"}'), {returnValue: true, errorText: '', errorCode: 0});
+		await b.settle();
+		assert.deepEqual(b.exec, [['/bin/systemctl', 'stop', 'android-tools-adbd']]);
 	} finally {
 		b.done();
 	}
