@@ -1,0 +1,1508 @@
+{
+ "recorded": "org.webosports.service.devmode at 65588c2 (stock, mojoservice) on the qemux86-64 LuneOS VM, node v22.23.2, by tests/vm/drive.js",
+ "cases": [
+  {
+   "method": "getStatus",
+   "payload": "{}",
+   "pre": {
+    "dev": false,
+    "usb": false
+   },
+   "reply": {
+    "returnValue": true,
+    "status": "disabled",
+    "usbDebugging": "disabled"
+   }
+  },
+  {
+   "method": "getStatus",
+   "payload": "{}",
+   "pre": {
+    "dev": true,
+    "usb": false
+   },
+   "reply": {
+    "returnValue": true,
+    "status": "enabled",
+    "usbDebugging": "disabled"
+   }
+  },
+  {
+   "method": "getStatus",
+   "payload": "{}",
+   "pre": {
+    "dev": false,
+    "usb": true
+   },
+   "reply": {
+    "returnValue": true,
+    "status": "disabled",
+    "usbDebugging": "enabled"
+   }
+  },
+  {
+   "method": "getStatus",
+   "payload": "{}",
+   "pre": {
+    "dev": true,
+    "usb": true
+   },
+   "reply": {
+    "returnValue": true,
+    "status": "enabled",
+    "usbDebugging": "enabled"
+   }
+  },
+  {
+   "method": "getStatus",
+   "payload": "{\"x\":1}",
+   "pre": {
+    "dev": true,
+    "usb": true
+   },
+   "reply": {
+    "returnValue": true,
+    "status": "enabled",
+    "usbDebugging": "enabled"
+   }
+  },
+  {
+   "method": "setStatus",
+   "payload": "{}",
+   "pre": {
+    "dev": false,
+    "usb": false
+   },
+   "reply": {
+    "returnValue": true,
+    "errorText": "",
+    "errorCode": 0
+   },
+   "post": {
+    "dev": false,
+    "usb": false
+   },
+   "exec": []
+  },
+  {
+   "method": "setStatus",
+   "payload": "{}",
+   "pre": {
+    "dev": true,
+    "usb": false
+   },
+   "reply": {
+    "returnValue": true,
+    "errorText": "",
+    "errorCode": 0
+   },
+   "post": {
+    "dev": true,
+    "usb": false
+   },
+   "exec": []
+  },
+  {
+   "method": "setStatus",
+   "payload": "{}",
+   "pre": {
+    "dev": false,
+    "usb": true
+   },
+   "reply": {
+    "returnValue": true,
+    "errorText": "",
+    "errorCode": 0
+   },
+   "post": {
+    "dev": false,
+    "usb": true
+   },
+   "exec": []
+  },
+  {
+   "method": "setStatus",
+   "payload": "{}",
+   "pre": {
+    "dev": true,
+    "usb": true
+   },
+   "reply": {
+    "returnValue": true,
+    "errorText": "",
+    "errorCode": 0
+   },
+   "post": {
+    "dev": true,
+    "usb": true
+   },
+   "exec": []
+  },
+  {
+   "method": "setStatus",
+   "payload": "{\"status\":\"enabled\"}",
+   "pre": {
+    "dev": false,
+    "usb": false
+   },
+   "reply": {
+    "returnValue": true,
+    "errorText": "",
+    "errorCode": 0
+   },
+   "post": {
+    "dev": true,
+    "usb": false
+   },
+   "exec": [
+    [
+     "/bin/touch",
+     "/var/luna/dev-mode-enabled"
+    ]
+   ]
+  },
+  {
+   "method": "setStatus",
+   "payload": "{\"status\":\"enabled\"}",
+   "pre": {
+    "dev": true,
+    "usb": false
+   },
+   "reply": {
+    "returnValue": true,
+    "errorText": "",
+    "errorCode": 0
+   },
+   "post": {
+    "dev": true,
+    "usb": false
+   },
+   "exec": [
+    [
+     "/bin/touch",
+     "/var/luna/dev-mode-enabled"
+    ]
+   ]
+  },
+  {
+   "method": "setStatus",
+   "payload": "{\"status\":\"enabled\"}",
+   "pre": {
+    "dev": false,
+    "usb": true
+   },
+   "reply": {
+    "returnValue": true,
+    "errorText": "",
+    "errorCode": 0
+   },
+   "post": {
+    "dev": true,
+    "usb": true
+   },
+   "exec": [
+    [
+     "/bin/touch",
+     "/var/luna/dev-mode-enabled"
+    ]
+   ]
+  },
+  {
+   "method": "setStatus",
+   "payload": "{\"status\":\"enabled\"}",
+   "pre": {
+    "dev": true,
+    "usb": true
+   },
+   "reply": {
+    "returnValue": true,
+    "errorText": "",
+    "errorCode": 0
+   },
+   "post": {
+    "dev": true,
+    "usb": true
+   },
+   "exec": [
+    [
+     "/bin/touch",
+     "/var/luna/dev-mode-enabled"
+    ]
+   ]
+  },
+  {
+   "method": "setStatus",
+   "payload": "{\"status\":\"disabled\"}",
+   "pre": {
+    "dev": false,
+    "usb": false
+   },
+   "reply": {
+    "returnValue": true,
+    "errorText": "",
+    "errorCode": 0
+   },
+   "post": {
+    "dev": false,
+    "usb": false
+   },
+   "exec": [
+    [
+     "/bin/systemctl",
+     "stop",
+     "android-tools-adbd"
+    ],
+    [
+     "/bin/rm",
+     "/var/luna/dev-mode-enabled"
+    ]
+   ]
+  },
+  {
+   "method": "setStatus",
+   "payload": "{\"status\":\"disabled\"}",
+   "pre": {
+    "dev": true,
+    "usb": false
+   },
+   "reply": {
+    "returnValue": true,
+    "errorText": "",
+    "errorCode": 0
+   },
+   "post": {
+    "dev": false,
+    "usb": false
+   },
+   "exec": [
+    [
+     "/bin/systemctl",
+     "stop",
+     "android-tools-adbd"
+    ],
+    [
+     "/bin/rm",
+     "/var/luna/dev-mode-enabled"
+    ]
+   ]
+  },
+  {
+   "method": "setStatus",
+   "payload": "{\"status\":\"disabled\"}",
+   "pre": {
+    "dev": false,
+    "usb": true
+   },
+   "reply": {
+    "returnValue": true,
+    "errorText": "",
+    "errorCode": 0
+   },
+   "post": {
+    "dev": false,
+    "usb": true
+   },
+   "exec": [
+    [
+     "/bin/systemctl",
+     "stop",
+     "android-tools-adbd"
+    ],
+    [
+     "/bin/rm",
+     "/var/luna/dev-mode-enabled"
+    ]
+   ]
+  },
+  {
+   "method": "setStatus",
+   "payload": "{\"status\":\"disabled\"}",
+   "pre": {
+    "dev": true,
+    "usb": true
+   },
+   "reply": {
+    "returnValue": true,
+    "errorText": "",
+    "errorCode": 0
+   },
+   "post": {
+    "dev": false,
+    "usb": true
+   },
+   "exec": [
+    [
+     "/bin/systemctl",
+     "stop",
+     "android-tools-adbd"
+    ],
+    [
+     "/bin/rm",
+     "/var/luna/dev-mode-enabled"
+    ]
+   ]
+  },
+  {
+   "method": "setStatus",
+   "payload": "{\"status\":\"bogus\"}",
+   "pre": {
+    "dev": false,
+    "usb": false
+   },
+   "reply": {
+    "returnValue": true,
+    "errorText": "Invalid value provided for status",
+    "errorCode": 0
+   },
+   "post": {
+    "dev": false,
+    "usb": false
+   },
+   "exec": []
+  },
+  {
+   "method": "setStatus",
+   "payload": "{\"status\":\"bogus\"}",
+   "pre": {
+    "dev": true,
+    "usb": false
+   },
+   "reply": {
+    "returnValue": true,
+    "errorText": "Invalid value provided for status",
+    "errorCode": 0
+   },
+   "post": {
+    "dev": true,
+    "usb": false
+   },
+   "exec": []
+  },
+  {
+   "method": "setStatus",
+   "payload": "{\"status\":\"bogus\"}",
+   "pre": {
+    "dev": false,
+    "usb": true
+   },
+   "reply": {
+    "returnValue": true,
+    "errorText": "Invalid value provided for status",
+    "errorCode": 0
+   },
+   "post": {
+    "dev": false,
+    "usb": true
+   },
+   "exec": []
+  },
+  {
+   "method": "setStatus",
+   "payload": "{\"status\":\"bogus\"}",
+   "pre": {
+    "dev": true,
+    "usb": true
+   },
+   "reply": {
+    "returnValue": true,
+    "errorText": "Invalid value provided for status",
+    "errorCode": 0
+   },
+   "post": {
+    "dev": true,
+    "usb": true
+   },
+   "exec": []
+  },
+  {
+   "method": "setStatus",
+   "payload": "{\"status\":true}",
+   "pre": {
+    "dev": false,
+    "usb": false
+   },
+   "reply": {
+    "returnValue": true,
+    "errorText": "Invalid value provided for status",
+    "errorCode": 0
+   },
+   "post": {
+    "dev": false,
+    "usb": false
+   },
+   "exec": []
+  },
+  {
+   "method": "setStatus",
+   "payload": "{\"status\":true}",
+   "pre": {
+    "dev": true,
+    "usb": false
+   },
+   "reply": {
+    "returnValue": true,
+    "errorText": "Invalid value provided for status",
+    "errorCode": 0
+   },
+   "post": {
+    "dev": true,
+    "usb": false
+   },
+   "exec": []
+  },
+  {
+   "method": "setStatus",
+   "payload": "{\"status\":true}",
+   "pre": {
+    "dev": false,
+    "usb": true
+   },
+   "reply": {
+    "returnValue": true,
+    "errorText": "Invalid value provided for status",
+    "errorCode": 0
+   },
+   "post": {
+    "dev": false,
+    "usb": true
+   },
+   "exec": []
+  },
+  {
+   "method": "setStatus",
+   "payload": "{\"status\":true}",
+   "pre": {
+    "dev": true,
+    "usb": true
+   },
+   "reply": {
+    "returnValue": true,
+    "errorText": "Invalid value provided for status",
+    "errorCode": 0
+   },
+   "post": {
+    "dev": true,
+    "usb": true
+   },
+   "exec": []
+  },
+  {
+   "method": "setStatus",
+   "payload": "{\"status\":null}",
+   "pre": {
+    "dev": false,
+    "usb": false
+   },
+   "reply": {
+    "returnValue": true,
+    "errorText": "Invalid value provided for status",
+    "errorCode": 0
+   },
+   "post": {
+    "dev": false,
+    "usb": false
+   },
+   "exec": []
+  },
+  {
+   "method": "setStatus",
+   "payload": "{\"status\":null}",
+   "pre": {
+    "dev": true,
+    "usb": false
+   },
+   "reply": {
+    "returnValue": true,
+    "errorText": "Invalid value provided for status",
+    "errorCode": 0
+   },
+   "post": {
+    "dev": true,
+    "usb": false
+   },
+   "exec": []
+  },
+  {
+   "method": "setStatus",
+   "payload": "{\"status\":null}",
+   "pre": {
+    "dev": false,
+    "usb": true
+   },
+   "reply": {
+    "returnValue": true,
+    "errorText": "Invalid value provided for status",
+    "errorCode": 0
+   },
+   "post": {
+    "dev": false,
+    "usb": true
+   },
+   "exec": []
+  },
+  {
+   "method": "setStatus",
+   "payload": "{\"status\":null}",
+   "pre": {
+    "dev": true,
+    "usb": true
+   },
+   "reply": {
+    "returnValue": true,
+    "errorText": "Invalid value provided for status",
+    "errorCode": 0
+   },
+   "post": {
+    "dev": true,
+    "usb": true
+   },
+   "exec": []
+  },
+  {
+   "method": "setStatus",
+   "payload": "{\"usbDebugging\":\"enabled\"}",
+   "pre": {
+    "dev": false,
+    "usb": false
+   },
+   "reply": {
+    "returnValue": true,
+    "errorText": "",
+    "errorCode": 0
+   },
+   "post": {
+    "dev": false,
+    "usb": true
+   },
+   "exec": [
+    [
+     "/bin/systemctl",
+     "start",
+     "android-tools-adbd"
+    ]
+   ]
+  },
+  {
+   "method": "setStatus",
+   "payload": "{\"usbDebugging\":\"enabled\"}",
+   "pre": {
+    "dev": true,
+    "usb": false
+   },
+   "reply": {
+    "returnValue": true,
+    "errorText": "",
+    "errorCode": 0
+   },
+   "post": {
+    "dev": true,
+    "usb": true
+   },
+   "exec": [
+    [
+     "/bin/systemctl",
+     "start",
+     "android-tools-adbd"
+    ]
+   ]
+  },
+  {
+   "method": "setStatus",
+   "payload": "{\"usbDebugging\":\"enabled\"}",
+   "pre": {
+    "dev": false,
+    "usb": true
+   },
+   "reply": {
+    "returnValue": true,
+    "errorText": "",
+    "errorCode": 0
+   },
+   "post": {
+    "dev": false,
+    "usb": true
+   },
+   "exec": [
+    [
+     "/bin/systemctl",
+     "start",
+     "android-tools-adbd"
+    ]
+   ]
+  },
+  {
+   "method": "setStatus",
+   "payload": "{\"usbDebugging\":\"enabled\"}",
+   "pre": {
+    "dev": true,
+    "usb": true
+   },
+   "reply": {
+    "returnValue": true,
+    "errorText": "",
+    "errorCode": 0
+   },
+   "post": {
+    "dev": true,
+    "usb": true
+   },
+   "exec": [
+    [
+     "/bin/systemctl",
+     "start",
+     "android-tools-adbd"
+    ]
+   ]
+  },
+  {
+   "method": "setStatus",
+   "payload": "{\"usbDebugging\":\"disabled\"}",
+   "pre": {
+    "dev": false,
+    "usb": false
+   },
+   "reply": {
+    "returnValue": true,
+    "errorText": "",
+    "errorCode": 0
+   },
+   "post": {
+    "dev": false,
+    "usb": false
+   },
+   "exec": []
+  },
+  {
+   "method": "setStatus",
+   "payload": "{\"usbDebugging\":\"disabled\"}",
+   "pre": {
+    "dev": true,
+    "usb": false
+   },
+   "reply": {
+    "returnValue": true,
+    "errorText": "",
+    "errorCode": 0
+   },
+   "post": {
+    "dev": true,
+    "usb": false
+   },
+   "exec": []
+  },
+  {
+   "method": "setStatus",
+   "payload": "{\"usbDebugging\":\"disabled\"}",
+   "pre": {
+    "dev": false,
+    "usb": true
+   },
+   "reply": {
+    "returnValue": true,
+    "errorText": "",
+    "errorCode": 0
+   },
+   "post": {
+    "dev": false,
+    "usb": false
+   },
+   "exec": [
+    [
+     "/bin/systemctl",
+     "stop",
+     "android-tools-adbd"
+    ]
+   ]
+  },
+  {
+   "method": "setStatus",
+   "payload": "{\"usbDebugging\":\"disabled\"}",
+   "pre": {
+    "dev": true,
+    "usb": true
+   },
+   "reply": {
+    "returnValue": true,
+    "errorText": "",
+    "errorCode": 0
+   },
+   "post": {
+    "dev": true,
+    "usb": false
+   },
+   "exec": [
+    [
+     "/bin/systemctl",
+     "stop",
+     "android-tools-adbd"
+    ]
+   ]
+  },
+  {
+   "method": "setStatus",
+   "payload": "{\"usbDebugging\":\"x\"}",
+   "pre": {
+    "dev": false,
+    "usb": false
+   },
+   "reply": {
+    "returnValue": true,
+    "errorText": "Invalid value provided for status",
+    "errorCode": 0
+   },
+   "post": {
+    "dev": false,
+    "usb": false
+   },
+   "exec": []
+  },
+  {
+   "method": "setStatus",
+   "payload": "{\"usbDebugging\":\"x\"}",
+   "pre": {
+    "dev": true,
+    "usb": false
+   },
+   "reply": {
+    "returnValue": true,
+    "errorText": "Invalid value provided for status",
+    "errorCode": 0
+   },
+   "post": {
+    "dev": true,
+    "usb": false
+   },
+   "exec": []
+  },
+  {
+   "method": "setStatus",
+   "payload": "{\"usbDebugging\":\"x\"}",
+   "pre": {
+    "dev": false,
+    "usb": true
+   },
+   "reply": {
+    "returnValue": true,
+    "errorText": "Invalid value provided for status",
+    "errorCode": 0
+   },
+   "post": {
+    "dev": false,
+    "usb": true
+   },
+   "exec": []
+  },
+  {
+   "method": "setStatus",
+   "payload": "{\"usbDebugging\":\"x\"}",
+   "pre": {
+    "dev": true,
+    "usb": true
+   },
+   "reply": {
+    "returnValue": true,
+    "errorText": "Invalid value provided for status",
+    "errorCode": 0
+   },
+   "post": {
+    "dev": true,
+    "usb": true
+   },
+   "exec": []
+  },
+  {
+   "method": "setStatus",
+   "payload": "{\"status\":\"disabled\",\"usbDebugging\":\"x\"}",
+   "pre": {
+    "dev": false,
+    "usb": false
+   },
+   "reply": {
+    "returnValue": true,
+    "errorText": "Invalid value provided for status",
+    "errorCode": 0
+   },
+   "post": {
+    "dev": false,
+    "usb": false
+   },
+   "exec": [
+    [
+     "/bin/systemctl",
+     "stop",
+     "android-tools-adbd"
+    ],
+    [
+     "/bin/rm",
+     "/var/luna/dev-mode-enabled"
+    ]
+   ]
+  },
+  {
+   "method": "setStatus",
+   "payload": "{\"status\":\"disabled\",\"usbDebugging\":\"x\"}",
+   "pre": {
+    "dev": true,
+    "usb": false
+   },
+   "reply": {
+    "returnValue": true,
+    "errorText": "Invalid value provided for status",
+    "errorCode": 0
+   },
+   "post": {
+    "dev": false,
+    "usb": false
+   },
+   "exec": [
+    [
+     "/bin/systemctl",
+     "stop",
+     "android-tools-adbd"
+    ],
+    [
+     "/bin/rm",
+     "/var/luna/dev-mode-enabled"
+    ]
+   ]
+  },
+  {
+   "method": "setStatus",
+   "payload": "{\"status\":\"disabled\",\"usbDebugging\":\"x\"}",
+   "pre": {
+    "dev": false,
+    "usb": true
+   },
+   "reply": {
+    "returnValue": true,
+    "errorText": "Invalid value provided for status",
+    "errorCode": 0
+   },
+   "post": {
+    "dev": false,
+    "usb": true
+   },
+   "exec": [
+    [
+     "/bin/systemctl",
+     "stop",
+     "android-tools-adbd"
+    ],
+    [
+     "/bin/rm",
+     "/var/luna/dev-mode-enabled"
+    ]
+   ]
+  },
+  {
+   "method": "setStatus",
+   "payload": "{\"status\":\"disabled\",\"usbDebugging\":\"x\"}",
+   "pre": {
+    "dev": true,
+    "usb": true
+   },
+   "reply": {
+    "returnValue": true,
+    "errorText": "Invalid value provided for status",
+    "errorCode": 0
+   },
+   "post": {
+    "dev": false,
+    "usb": true
+   },
+   "exec": [
+    [
+     "/bin/systemctl",
+     "stop",
+     "android-tools-adbd"
+    ],
+    [
+     "/bin/rm",
+     "/var/luna/dev-mode-enabled"
+    ]
+   ]
+  },
+  {
+   "method": "setStatus",
+   "payload": "{\"status\":\"enabled\",\"usbDebugging\":\"enabled\"}",
+   "pre": {
+    "dev": false,
+    "usb": false
+   },
+   "reply": {
+    "returnValue": true,
+    "errorText": "",
+    "errorCode": 0
+   },
+   "post": {
+    "dev": true,
+    "usb": true
+   },
+   "exec": [
+    [
+     "/bin/touch",
+     "/var/luna/dev-mode-enabled"
+    ],
+    [
+     "/bin/systemctl",
+     "start",
+     "android-tools-adbd"
+    ]
+   ]
+  },
+  {
+   "method": "setStatus",
+   "payload": "{\"status\":\"enabled\",\"usbDebugging\":\"enabled\"}",
+   "pre": {
+    "dev": true,
+    "usb": false
+   },
+   "reply": {
+    "returnValue": true,
+    "errorText": "",
+    "errorCode": 0
+   },
+   "post": {
+    "dev": true,
+    "usb": true
+   },
+   "exec": [
+    [
+     "/bin/touch",
+     "/var/luna/dev-mode-enabled"
+    ],
+    [
+     "/bin/systemctl",
+     "start",
+     "android-tools-adbd"
+    ]
+   ]
+  },
+  {
+   "method": "setStatus",
+   "payload": "{\"status\":\"enabled\",\"usbDebugging\":\"enabled\"}",
+   "pre": {
+    "dev": false,
+    "usb": true
+   },
+   "reply": {
+    "returnValue": true,
+    "errorText": "",
+    "errorCode": 0
+   },
+   "post": {
+    "dev": true,
+    "usb": true
+   },
+   "exec": [
+    [
+     "/bin/touch",
+     "/var/luna/dev-mode-enabled"
+    ],
+    [
+     "/bin/systemctl",
+     "start",
+     "android-tools-adbd"
+    ]
+   ]
+  },
+  {
+   "method": "setStatus",
+   "payload": "{\"status\":\"enabled\",\"usbDebugging\":\"enabled\"}",
+   "pre": {
+    "dev": true,
+    "usb": true
+   },
+   "reply": {
+    "returnValue": true,
+    "errorText": "",
+    "errorCode": 0
+   },
+   "post": {
+    "dev": true,
+    "usb": true
+   },
+   "exec": [
+    [
+     "/bin/touch",
+     "/var/luna/dev-mode-enabled"
+    ],
+    [
+     "/bin/systemctl",
+     "start",
+     "android-tools-adbd"
+    ]
+   ]
+  },
+  {
+   "method": "setStatus",
+   "payload": "{\"status\":\"disabled\",\"usbDebugging\":\"enabled\"}",
+   "pre": {
+    "dev": false,
+    "usb": false
+   },
+   "reply": {
+    "returnValue": true,
+    "errorText": "",
+    "errorCode": 0
+   },
+   "post": {
+    "dev": false,
+    "usb": true
+   },
+   "exec": [
+    [
+     "/bin/systemctl",
+     "stop",
+     "android-tools-adbd"
+    ],
+    [
+     "/bin/rm",
+     "/var/luna/dev-mode-enabled"
+    ],
+    [
+     "/bin/systemctl",
+     "start",
+     "android-tools-adbd"
+    ]
+   ]
+  },
+  {
+   "method": "setStatus",
+   "payload": "{\"status\":\"disabled\",\"usbDebugging\":\"enabled\"}",
+   "pre": {
+    "dev": true,
+    "usb": false
+   },
+   "reply": {
+    "returnValue": true,
+    "errorText": "",
+    "errorCode": 0
+   },
+   "post": {
+    "dev": false,
+    "usb": true
+   },
+   "exec": [
+    [
+     "/bin/systemctl",
+     "stop",
+     "android-tools-adbd"
+    ],
+    [
+     "/bin/rm",
+     "/var/luna/dev-mode-enabled"
+    ],
+    [
+     "/bin/systemctl",
+     "start",
+     "android-tools-adbd"
+    ]
+   ]
+  },
+  {
+   "method": "setStatus",
+   "payload": "{\"status\":\"disabled\",\"usbDebugging\":\"enabled\"}",
+   "pre": {
+    "dev": false,
+    "usb": true
+   },
+   "reply": {
+    "returnValue": true,
+    "errorText": "",
+    "errorCode": 0
+   },
+   "post": {
+    "dev": false,
+    "usb": true
+   },
+   "exec": [
+    [
+     "/bin/systemctl",
+     "stop",
+     "android-tools-adbd"
+    ],
+    [
+     "/bin/rm",
+     "/var/luna/dev-mode-enabled"
+    ],
+    [
+     "/bin/systemctl",
+     "start",
+     "android-tools-adbd"
+    ]
+   ]
+  },
+  {
+   "method": "setStatus",
+   "payload": "{\"status\":\"disabled\",\"usbDebugging\":\"enabled\"}",
+   "pre": {
+    "dev": true,
+    "usb": true
+   },
+   "reply": {
+    "returnValue": true,
+    "errorText": "",
+    "errorCode": 0
+   },
+   "post": {
+    "dev": false,
+    "usb": true
+   },
+   "exec": [
+    [
+     "/bin/systemctl",
+     "stop",
+     "android-tools-adbd"
+    ],
+    [
+     "/bin/rm",
+     "/var/luna/dev-mode-enabled"
+    ],
+    [
+     "/bin/systemctl",
+     "start",
+     "android-tools-adbd"
+    ]
+   ]
+  },
+  {
+   "method": "setStatus",
+   "payload": "{\"status\":\"enabled\",\"usbDebugging\":\"disabled\"}",
+   "pre": {
+    "dev": false,
+    "usb": false
+   },
+   "reply": {
+    "returnValue": true,
+    "errorText": "",
+    "errorCode": 0
+   },
+   "post": {
+    "dev": true,
+    "usb": false
+   },
+   "exec": [
+    [
+     "/bin/touch",
+     "/var/luna/dev-mode-enabled"
+    ]
+   ]
+  },
+  {
+   "method": "setStatus",
+   "payload": "{\"status\":\"enabled\",\"usbDebugging\":\"disabled\"}",
+   "pre": {
+    "dev": true,
+    "usb": false
+   },
+   "reply": {
+    "returnValue": true,
+    "errorText": "",
+    "errorCode": 0
+   },
+   "post": {
+    "dev": true,
+    "usb": false
+   },
+   "exec": [
+    [
+     "/bin/touch",
+     "/var/luna/dev-mode-enabled"
+    ]
+   ]
+  },
+  {
+   "method": "setStatus",
+   "payload": "{\"status\":\"enabled\",\"usbDebugging\":\"disabled\"}",
+   "pre": {
+    "dev": false,
+    "usb": true
+   },
+   "reply": {
+    "returnValue": true,
+    "errorText": "",
+    "errorCode": 0
+   },
+   "post": {
+    "dev": true,
+    "usb": false
+   },
+   "exec": [
+    [
+     "/bin/touch",
+     "/var/luna/dev-mode-enabled"
+    ],
+    [
+     "/bin/systemctl",
+     "stop",
+     "android-tools-adbd"
+    ]
+   ]
+  },
+  {
+   "method": "setStatus",
+   "payload": "{\"status\":\"enabled\",\"usbDebugging\":\"disabled\"}",
+   "pre": {
+    "dev": true,
+    "usb": true
+   },
+   "reply": {
+    "returnValue": true,
+    "errorText": "",
+    "errorCode": 0
+   },
+   "post": {
+    "dev": true,
+    "usb": false
+   },
+   "exec": [
+    [
+     "/bin/touch",
+     "/var/luna/dev-mode-enabled"
+    ],
+    [
+     "/bin/systemctl",
+     "stop",
+     "android-tools-adbd"
+    ]
+   ]
+  },
+  {
+   "method": "setStatus",
+   "payload": "{\"status\":\"x\",\"usbDebugging\":\"enabled\"}",
+   "pre": {
+    "dev": false,
+    "usb": false
+   },
+   "reply": {
+    "returnValue": true,
+    "errorText": "Invalid value provided for status",
+    "errorCode": 0
+   },
+   "post": {
+    "dev": false,
+    "usb": false
+   },
+   "exec": []
+  },
+  {
+   "method": "setStatus",
+   "payload": "{\"status\":\"x\",\"usbDebugging\":\"enabled\"}",
+   "pre": {
+    "dev": true,
+    "usb": false
+   },
+   "reply": {
+    "returnValue": true,
+    "errorText": "Invalid value provided for status",
+    "errorCode": 0
+   },
+   "post": {
+    "dev": true,
+    "usb": false
+   },
+   "exec": []
+  },
+  {
+   "method": "setStatus",
+   "payload": "{\"status\":\"x\",\"usbDebugging\":\"enabled\"}",
+   "pre": {
+    "dev": false,
+    "usb": true
+   },
+   "reply": {
+    "returnValue": true,
+    "errorText": "Invalid value provided for status",
+    "errorCode": 0
+   },
+   "post": {
+    "dev": false,
+    "usb": true
+   },
+   "exec": []
+  },
+  {
+   "method": "setStatus",
+   "payload": "{\"status\":\"x\",\"usbDebugging\":\"enabled\"}",
+   "pre": {
+    "dev": true,
+    "usb": true
+   },
+   "reply": {
+    "returnValue": true,
+    "errorText": "Invalid value provided for status",
+    "errorCode": 0
+   },
+   "post": {
+    "dev": true,
+    "usb": true
+   },
+   "exec": []
+  },
+  {
+   "method": "setStatus",
+   "payload": "[]",
+   "pre": {
+    "dev": false,
+    "usb": false
+   },
+   "reply": {
+    "returnValue": true,
+    "errorText": "",
+    "errorCode": 0
+   },
+   "post": {
+    "dev": false,
+    "usb": false
+   },
+   "exec": []
+  },
+  {
+   "method": "setStatus",
+   "payload": "[]",
+   "pre": {
+    "dev": true,
+    "usb": false
+   },
+   "reply": {
+    "returnValue": true,
+    "errorText": "",
+    "errorCode": 0
+   },
+   "post": {
+    "dev": true,
+    "usb": false
+   },
+   "exec": []
+  },
+  {
+   "method": "setStatus",
+   "payload": "[]",
+   "pre": {
+    "dev": false,
+    "usb": true
+   },
+   "reply": {
+    "returnValue": true,
+    "errorText": "",
+    "errorCode": 0
+   },
+   "post": {
+    "dev": false,
+    "usb": true
+   },
+   "exec": []
+  },
+  {
+   "method": "setStatus",
+   "payload": "[]",
+   "pre": {
+    "dev": true,
+    "usb": true
+   },
+   "reply": {
+    "returnValue": true,
+    "errorText": "",
+    "errorCode": 0
+   },
+   "post": {
+    "dev": true,
+    "usb": true
+   },
+   "exec": []
+  },
+  {
+   "method": "setStatus",
+   "payload": "{\"status\":\"enabled\",\"extra\":1}",
+   "pre": {
+    "dev": false,
+    "usb": false
+   },
+   "reply": {
+    "returnValue": true,
+    "errorText": "",
+    "errorCode": 0
+   },
+   "post": {
+    "dev": true,
+    "usb": false
+   },
+   "exec": [
+    [
+     "/bin/touch",
+     "/var/luna/dev-mode-enabled"
+    ]
+   ]
+  },
+  {
+   "method": "setStatus",
+   "payload": "{\"status\":\"enabled\",\"extra\":1}",
+   "pre": {
+    "dev": true,
+    "usb": false
+   },
+   "reply": {
+    "returnValue": true,
+    "errorText": "",
+    "errorCode": 0
+   },
+   "post": {
+    "dev": true,
+    "usb": false
+   },
+   "exec": [
+    [
+     "/bin/touch",
+     "/var/luna/dev-mode-enabled"
+    ]
+   ]
+  },
+  {
+   "method": "setStatus",
+   "payload": "{\"status\":\"enabled\",\"extra\":1}",
+   "pre": {
+    "dev": false,
+    "usb": true
+   },
+   "reply": {
+    "returnValue": true,
+    "errorText": "",
+    "errorCode": 0
+   },
+   "post": {
+    "dev": true,
+    "usb": true
+   },
+   "exec": [
+    [
+     "/bin/touch",
+     "/var/luna/dev-mode-enabled"
+    ]
+   ]
+  },
+  {
+   "method": "setStatus",
+   "payload": "{\"status\":\"enabled\",\"extra\":1}",
+   "pre": {
+    "dev": true,
+    "usb": true
+   },
+   "reply": {
+    "returnValue": true,
+    "errorText": "",
+    "errorCode": 0
+   },
+   "post": {
+    "dev": true,
+    "usb": true
+   },
+   "exec": [
+    [
+     "/bin/touch",
+     "/var/luna/dev-mode-enabled"
+    ]
+   ]
+  }
+ ]
+}
