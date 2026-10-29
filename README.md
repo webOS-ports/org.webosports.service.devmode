@@ -22,7 +22,9 @@ group):
   from which of the two flags are there.
 - `setStatus` takes `status` and/or `usbDebugging`, each `"enabled"` or
   `"disabled"`. `status:"disabled"` also stops adbd and removes the USB
-  flag. It answers
+  flag. `status` starts or stops `sshd.socket` with it, and restarts
+  `webapp-mgr.service` when developer mode changes, so WAM's DevTools port
+  (9998) comes and goes with it (see D9). It answers
   `{"returnValue":true,"errorText":"","errorCode":0}`, or
   `{"returnValue":false,"errorText":"Invalid value provided for status","errorCode":0}`
   (or `usbDebugging`) for a value that is neither, and then changes
@@ -86,6 +88,17 @@ them so:
   there (`ConditionPathExists` in meta-oe's unit), and that is the one
   `luneos-dev-image.bb` writes. Turning USB debugging on never started
   adbd, and on a developer image `getStatus` said it was off.
+- D9: turning developer mode off left sshd and WAM's DevTools port
+  (`--remote-debugging-port=9998`) on, although the old code says "when
+  we turn off devmode we also disable all access methods". Now:
+  - `sshd.socket` is stopped with developer mode off and started with it
+    on; meta-webos-ports gives the socket
+    `ConditionPathExists=/var/luna/dev-mode-enabled`, so it stays as set
+    across a reboot. A session already open is left to end by itself.
+  - `webapp-mgr.sh` passes the DevTools port only while the developer
+    mode flag is there. WAM reads it at start, so the service restarts
+    `webapp-mgr.service` when developer mode changes (not on a call that
+    leaves it as it was, nor on one that failed): open web apps close.
 
 Deliberately different from the old service, and why:
 

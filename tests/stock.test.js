@@ -47,6 +47,15 @@ function expected(c) {
 	if (c.method === 'setStatus' && !badStatus && !badUsb && args.usbDebugging === 'disabled' && !c.pre.usb) {
 		want.exec = want.exec.concat([['/bin/systemctl', 'stop', 'android-tools-adbd']]);
 	}
+	// D9: developer mode turns sshd on and off with it, and WAM is restarted when it changes, for
+	// its DevTools port.
+	if (c.method === 'setStatus' && !badStatus && !badUsb && VALUES.includes(args.status)) {
+		const on = args.status === 'enabled';
+		want.exec = want.exec.concat([['/bin/systemctl', on ? 'start' : 'stop', 'sshd.socket']]);
+		if (on !== c.pre.dev) {
+			want.exec = want.exec.concat([['/bin/systemctl', 'restart', 'webapp-mgr.service']]);
+		}
+	}
 	// D4: an invalid value anywhere changes nothing.
 	if (c.method === 'setStatus' && (badStatus || badUsb)) {
 		want.post = c.pre;
