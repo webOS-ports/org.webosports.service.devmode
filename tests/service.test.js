@@ -61,7 +61,7 @@ test('it registers its methods and the bus\'s quit and info', () => {
 	const b = boot();
 	try {
 		assert.deepEqual(b.pb.services['org.webosports.service.devmode'].methods.sort(),
-			['/adbAuthRequests', '/addAuthorizedKey', '/getAccessStatus', '/getStatus', '/info',
+			['/adbAuthRequests', '/addAuthorizedKey', '/clearDevPassword', '/getAccessStatus', '/getStatus', '/info',
 				'/listAuthorizedKeys', '/quit', '/removeAuthorizedKey', '/respondAdbAuth', '/revokeAdbKeys',
 				'/setDevPassword', '/setStatus', '/sshOverWifi']);
 	} finally {

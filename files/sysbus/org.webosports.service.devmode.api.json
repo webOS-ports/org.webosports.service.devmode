@@ -6,6 +6,7 @@
       "org.webosports.service.devmode/setStatus",
       "org.webosports.service.devmode/getAccessStatus",
       "org.webosports.service.devmode/setDevPassword",
+      "org.webosports.service.devmode/clearDevPassword",
       "org.webosports.service.devmode/addAuthorizedKey",
       "org.webosports.service.devmode/removeAuthorizedKey",
       "org.webosports.service.devmode/listAuthorizedKeys",

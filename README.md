@@ -47,7 +47,11 @@ a privileged service only, so the role is `privileged`.
 The ways in
 -----------
 Images let root in with neither an empty password nor a password over
-ssh (audit C1); developer mode is how a device is opened up.
+ssh from the network (audit C1); developer mode is how a device is opened
+up. sshd takes root's password only on the local link: the device's end of
+its USB network, and on an emulator its NAT address (meta-luneos'
+`luneos_image.bbclass`, `LUNEOS_SSH_PASSWORD_ADDRESSES`); elsewhere, Wi-Fi
+included, a key is needed.
 
 USB debugging asks before adbd lets a host in (audit C2, `lib/adbauth.js`).
 meta-luneos' adbd sends a key it does not know yet on `/run/adbd/auth`
@@ -75,6 +79,8 @@ For ssh (`lib/access.js`), from Developer Options:
 
 - `setDevPassword {password}`: root's password, 8 to 512 characters, set
   with `chpasswd -c YESCRYPT` through its stdin. Never logged.
+- `clearDevPassword`: no password again (`chpasswd -e`, `root:*`), in the
+  same ACG group as `setDevPassword`; works with developer mode off.
 - `addAuthorizedKey {key}`: one OpenSSH public key line (Ed25519, ECDSA,
   RSA of 2048 bits or more, or a security key's), without options, added
   to root's `~/.ssh/authorized_keys` (0600, in a 0700 `.ssh`), which sshd
@@ -92,6 +98,13 @@ For ssh (`lib/access.js`), from Developer Options:
 
 Setting a password, adding a key and SSH over Wi-Fi need developer mode
 on; taking away does not.
+
+`bin/luneos-ssh-addkey` adds one key read on its stdin the same way
+(`lib/access.js`, so the same checks and developer mode on), and prints its
+fingerprint; anything but one public key line is refused. meta-webos-ports
+links it to `/usr/sbin`, for
+
+    adb shell luneos-ssh-addkey < ~/.ssh/id_ed25519.pub
 
 Node 22
 -------

@@ -134,6 +134,38 @@ test('setDevPassword sets root\'s password with chpasswd -c YESCRYPT, on its std
 	}
 });
 
+test('clearDevPassword puts root back to "*" with chpasswd -e, also with developer mode off', async () => {
+	const ran = [];
+	let code = 0;
+	const b = boot({onSpawn: (cmd, args, child, input) => {
+		ran.push([cmd, args, input]);
+		setImmediate(() => child.emit('close', code));
+	}});
+	try {
+		let r = await call(b, 'clearDevPassword', {}, SETTINGS);
+		assert.equal(r.returnValue, true);
+		assert.deepEqual(ran, [['/usr/sbin/chpasswd', ['-e'], 'root:*\n']]);
+		code = 1;
+		r = await call(b, 'clearDevPassword', {}, SETTINGS);
+		assert.deepEqual([r.returnValue, r.errorCode], [false, 'FAILED']);
+		for (const caller of [OTHER_APP, SHELL]) {
+			r = await call(b, 'clearDevPassword', {}, caller);
+			assert.equal(r.returnValue, false);
+			assert.notEqual(r.errorCode, 'FAILED');
+		}
+		assert.equal(ran.length, 2);
+	} finally {
+		b.done();
+	}
+});
+
+test('clearDevPassword is in the same ACG group as setDevPassword', () => {
+	const api = JSON.parse(fs.readFileSync(require('path').join(__dirname, '..', 'files', 'sysbus', 'org.webosports.service.devmode.api.json'), 'utf8'));
+	const group = g => Object.keys(api).filter(k => api[k].includes('org.webosports.service.devmode/' + g));
+	assert.deepEqual(group('clearDevPassword'), ['devmode-service.management']);
+	assert.deepEqual(group('clearDevPassword'), group('setDevPassword'));
+});
+
 test('setDevPassword refuses a short password, a line break, and developer mode off', async () => {
 	const ran = [];
 	const b = boot({onSpawn: (cmd, args, child) => {

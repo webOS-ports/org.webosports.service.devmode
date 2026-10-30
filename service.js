@@ -163,6 +163,7 @@ function start({palmbus, exit, idleMs = IDLE_MS, log = console, devmode = {}, ad
 	};
 	const settingsMethod = run => ({allow: SETTINGS, handler: async args => run(args)});
 	table.setDevPassword = settingsMethod(args => acc.setDevPassword(args));
+	table.clearDevPassword = settingsMethod(() => acc.clearDevPassword());
 	table.addAuthorizedKey = settingsMethod(args => acc.addAuthorizedKey(args));
 	table.removeAuthorizedKey = settingsMethod(args => acc.removeAuthorizedKey(args));
 	table.listAuthorizedKeys = settingsMethod(() => acc.listAuthorizedKeys());
