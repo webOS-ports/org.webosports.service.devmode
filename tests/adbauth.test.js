@@ -310,6 +310,27 @@ test('USB debugging going off refuses the question open and lets go of adbd', as
 	}
 });
 
+test('a revoke is logged with how many computers it forgot, and not the keys', async () => {
+	const lines = [];
+	const log = {log: s => lines.push(s), error: s => lines.push(s), warn() {}, info() {}};
+	const t = await setup({log});
+	try {
+		const k1 = adbKey(1), k2 = adbKey(2);
+		for (const k of [k1, k2]) {
+			await t.askKey(k);
+			await t.adb.respond({fingerprint: fp(k), allow: true, always: true});
+		}
+		lines.length = 0;
+		await t.adb.revoke();
+		assert.deepEqual(lines, ['devmode: USB debugging authorisations revoked: 2 remembered computers forgotten']);
+		await t.adb.revoke();
+		assert.deepEqual(lines.slice(1), ['devmode: USB debugging authorisations revoked: 0 remembered computers forgotten']);
+		assert.ok(!lines.join('\n').includes(k1.slice(0, 40)));
+	} finally {
+		await t.done();
+	}
+});
+
 test('the key is never logged', async () => {
 	const lines = [];
 	const log = {log: s => lines.push(s), error: s => lines.push(s), warn() {}, info() {}};
