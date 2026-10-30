@@ -44,10 +44,16 @@ function boot({systemctl, fsWrap, missing = [], pre = {}, adbauth = {}, access =
 	const files = {
 		socket: path.join(dir, 'adbd-auth'),
 		adbKeys: path.join(dir, 'adbd', 'adb_keys'),
+		// Root's home as the passwd database tells it; /home/root is there too, as on the image, and is not it.
+		rootHome: path.join(dir, 'root'),
+		otherRootHome: path.join(dir, 'home', 'root'),
 		authorizedKeys: path.join(dir, 'root', '.ssh', 'authorized_keys'),
 		shadow: path.join(dir, 'shadow'),
 		sshWifi: path.join(dir, 'luna', 'ssh-wifi-enabled')
 	};
+	// Both homes exist, as on the image (0700, the service's).
+	fs.mkdirSync(files.rootHome, {mode: 0o700});
+	fs.mkdirSync(files.otherRootHome, {recursive: true, mode: 0o700});
 	let running = 0;
 
 	// The command as it would have been on the device: the test paths put back to the real ones.
@@ -99,7 +105,8 @@ function boot({systemctl, fsWrap, missing = [], pre = {}, adbauth = {}, access =
 		devmode: {fs: fsWrap ? fsWrap(fs) : fs, spawn, devmodeFlag: flags.dev, usbFlag: flags.usb,
 			legacyUsbFlag: flags.legacyUsb},
 		adbauth: Object.assign({socketPath: files.socket, keysPath: files.adbKeys, reconnectMs: 20}, adbauth),
-		access: Object.assign({spawn, authorizedKeys: files.authorizedKeys, shadow: files.shadow,
+		access: Object.assign({spawn, shadow: files.shadow, ownerUid: process.getuid(),
+			userInfo: () => ({uid: 0, username: 'root', homedir: files.rootHome}),
 			sshWifiFlag: files.sshWifi}, access)});
 
 	function exists(f) {

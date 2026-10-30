@@ -77,7 +77,11 @@ For ssh (`lib/access.js`), from Developer Options:
   with `chpasswd -c YESCRYPT` through its stdin. Never logged.
 - `addAuthorizedKey {key}`: one OpenSSH public key line (Ed25519, ECDSA,
   RSA of 2048 bits or more, or a security key's), without options, added
-  to `/home/root/.ssh/authorized_keys` (0600, in a 0700 `.ssh`).
+  to root's `~/.ssh/authorized_keys` (0600, in a 0700 `.ssh`), which sshd
+  reads (`AuthorizedKeysFile .ssh/authorized_keys`). Root's home comes from
+  the passwd database each time (`os.userInfo()`; `/root` on LuneOS, not
+  `/home/root`, which is another directory); when it cannot be told, the
+  key methods answer `NO_ROOT_HOME` rather than guess.
   `listAuthorizedKeys` → `{keys:[{type, fingerprint, comment}]}`;
   `removeAuthorizedKey {fingerprint}`.
 - `sshOverWifi {enabled}`: `luneos-devmode-firewall ssh-wifi on|off`

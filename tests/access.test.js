@@ -188,7 +188,7 @@ test('the password is not logged, whatever happens', async () => {
 	};
 	const s = start({palmbus: pb, idleMs: 0, log, exit() {},
 		devmode: {devmodeFlag: dir + '/dev', usbFlag: dir + '/usb'},
-		access: {spawn, shadow: dir + '/shadow', authorizedKeys: dir + '/ak', sshWifiFlag: dir + '/wifi'},
+		access: {spawn, shadow: dir + '/shadow', sshWifiFlag: dir + '/wifi'},
 		adbauth: {socketPath: dir + '/sock'}});
 	try {
 		for (const password of ['correct horse', 'correct horse\nmore']) {
@@ -242,6 +242,112 @@ test('addAuthorizedKey adds an Ed25519 or RSA key to root\'s authorized_keys, 06
 		assert.deepEqual(r.keys, [{type: 'ssh-ed25519', fingerprint: fingerprint(ed), comment: 'me@laptop'},
 			{type: 'ssh-rsa', fingerprint: fingerprint(rsa), comment: 'rsa@laptop'}]);
 		assert.equal((await call(b, 'getAccessStatus', {}, SETTINGS)).authorizedKeys, 2);
+	} finally {
+		b.done();
+	}
+});
+
+test('the keys are in root\'s home as passwd tells it, not /home/root', async () => {
+	const path = require('path');
+	const b = boot();
+	try {
+		// As on the image: sshd's key already in /root/.ssh, nothing in /home/root.
+		const there = ed25519Key('already@there');
+		fs.mkdirSync(path.join(b.files.rootHome, '.ssh'), {mode: 0o700});
+		fs.writeFileSync(b.files.authorizedKeys, there + '\n', {mode: 0o600});
+		let r = await call(b, 'listAuthorizedKeys', {}, SETTINGS);
+		assert.deepEqual(r.keys.map(k => k.fingerprint), [fingerprint(there)]);
+		b.setState({dev: true});
+		const ed = ed25519Key();
+		r = await call(b, 'addAuthorizedKey', {key: ed}, SETTINGS);
+		assert.equal(r.added, true);
+		assert.equal(fs.readFileSync(b.files.authorizedKeys, 'utf8'), there + '\n' + ed + '\n');
+		assert.deepEqual(fs.readdirSync(b.files.otherRootHome), []);
+		assert.equal((await call(b, 'getAccessStatus', {}, SETTINGS)).authorizedKeys, 2);
+	} finally {
+		b.done();
+	}
+});
+
+test('root\'s home is asked every time, and one that is a link is followed as sshd does', async () => {
+	const path = require('path');
+	let home;
+	const b = boot({access: {userInfo: () => ({uid: 0, username: 'root', homedir: home})}});
+	try {
+		b.setState({dev: true});
+		home = b.files.rootHome;
+		const one = ed25519Key('one');
+		await call(b, 'addAuthorizedKey', {key: one}, SETTINGS);
+		// OSTree: /root -> var/roothome.
+		const real = path.join(b.files.rootHome, '..', 'var-roothome');
+		fs.mkdirSync(real, {mode: 0o700});
+		home = path.join(b.files.rootHome, '..', 'roothome-link');
+		fs.symlinkSync(real, home);
+		const two = ed25519Key('two');
+		assert.equal((await call(b, 'addAuthorizedKey', {key: two}, SETTINGS)).added, true);
+		assert.equal(fs.readFileSync(path.join(real, '.ssh', 'authorized_keys'), 'utf8'), two + '\n');
+		assert.equal(fs.statSync(path.join(real, '.ssh')).mode & 0o777, 0o700);
+		assert.equal(fs.readFileSync(b.files.authorizedKeys, 'utf8'), one + '\n');
+	} finally {
+		b.done();
+	}
+});
+
+test('a root home that cannot be told is an error, and nothing is written anywhere', async () => {
+	const path = require('path');
+	// Each: what the passwd database says (h is root's real home in this run), or the owner expected.
+	const cases = [
+		['userInfo throws', () => { throw new Error('no passwd entry'); }],
+		['not uid 0', h => ({uid: 1000, username: 'root', homedir: h})],
+		['not named root', h => ({uid: 0, username: 'toor', homedir: h})],
+		['no home', () => ({uid: 0, username: 'root', homedir: null})],
+		['empty home', () => ({uid: 0, username: 'root', homedir: ''})],
+		// Each of these is there and the service's, so only the check itself refuses it.
+		['relative', h => ({uid: 0, username: 'root', homedir: path.relative(process.cwd(), h)})],
+		['not normal', h => ({uid: 0, username: 'root', homedir: h + '/../' + path.basename(h)})],
+		['a line break', h => ({uid: 0, username: 'root', homedir: path.dirname(h) + '/bad\nhome'})],
+		['missing', h => ({uid: 0, username: 'root', homedir: h + '/x/y'})],
+		['a file', h => ({uid: 0, username: 'root', homedir: path.dirname(h) + '/a-file'})],
+		['someone else\'s', null]
+	];
+	for (const [why, info] of cases) {
+		let home = null;
+		const opt = info ? {userInfo: () => info(home)} : {ownerUid: process.getuid() + 1};
+		const b = boot({access: opt});
+		home = b.files.rootHome;
+		const top = path.dirname(home);
+		fs.writeFileSync(path.join(top, 'a-file'), '');
+		fs.mkdirSync(path.join(top, 'bad\nhome'), {mode: 0o700});
+		try {
+			b.setState({dev: true});
+			const before = fs.readdirSync(top).sort();
+			for (const [m, args] of [['addAuthorizedKey', {key: ed25519Key()}], ['listAuthorizedKeys', {}],
+				['removeAuthorizedKey', {fingerprint: 'SHA256:' + 'A'.repeat(43)}], ['getAccessStatus', {}]]) {
+				const r = await call(b, m, args, SETTINGS);
+				assert.equal(r.returnValue, false, why + ': ' + m);
+				assert.equal(r.errorCode, 'NO_ROOT_HOME', why + ': ' + m);
+			}
+			assert.equal(fs.existsSync(path.join(home, '.ssh')), false, why);
+			assert.deepEqual(fs.readdirSync(b.files.otherRootHome), [], why);
+			assert.deepEqual(fs.readdirSync(top).sort(), before, why);
+			assert.equal(fs.readFileSync(path.join(top, 'a-file'), 'utf8'), '', why);
+		} finally {
+			b.done();
+		}
+	}
+});
+
+test('a .ssh that is a link, or not root\'s, is not written through', async () => {
+	const path = require('path');
+	const b = boot();
+	try {
+		b.setState({dev: true});
+		const elsewhere = path.join(b.files.otherRootHome, 'elsewhere');
+		fs.mkdirSync(elsewhere);
+		fs.symlinkSync(elsewhere, path.join(b.files.rootHome, '.ssh'));
+		const r = await call(b, 'addAuthorizedKey', {key: ed25519Key()}, SETTINGS);
+		assert.equal(r.returnValue, false);
+		assert.deepEqual(fs.readdirSync(elsewhere), []);
 	} finally {
 		b.done();
 	}
