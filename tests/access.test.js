@@ -117,7 +117,7 @@ test('only Developer Options may call the access methods', async () => {
 	}
 });
 
-test('setDevPassword sets root\'s password with chpasswd -c YESCRYPT, on its stdin, never logged', async () => {
+test('setDevPassword sets root\'s password with chpasswd -c SHA512 -s 100000 (oe-core shadow has no YESCRYPT), on its stdin, never logged', async () => {
 	const ran = [];
 	const b = boot({onSpawn: (cmd, args, child, input) => {
 		ran.push([cmd, args, input]);
@@ -127,7 +127,7 @@ test('setDevPassword sets root\'s password with chpasswd -c YESCRYPT, on its std
 		b.setState({dev: true});
 		const r = await call(b, 'setDevPassword', {password: 'correct horse'}, SETTINGS);
 		assert.equal(r.returnValue, true);
-		assert.deepEqual(ran, [['/usr/sbin/chpasswd', ['-c', 'YESCRYPT'], 'root:correct horse\n']]);
+		assert.deepEqual(ran, [['/usr/sbin/chpasswd', ['-c', 'SHA512', '-s', '100000'], 'root:correct horse\n']]);
 		assert.ok(!b.exec.some(e => e.join(' ').includes('correct horse')), 'the password is in an argument');
 	} finally {
 		b.done();

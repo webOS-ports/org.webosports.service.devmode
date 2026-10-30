@@ -78,7 +78,8 @@ screen locks, or not answered in 60 s, is refused.
 For ssh (`lib/access.js`), from Developer Options:
 
 - `setDevPassword {password}`: root's password, 8 to 512 characters, set
-  with `chpasswd -c YESCRYPT` through its stdin. Never logged.
+  with `chpasswd -c SHA512 -s 100000` through its stdin (oe-core's shadow
+  has no YESCRYPT). Never logged.
 - `clearDevPassword`: no password again (`chpasswd -e`, `root:*`), in the
   same ACG group as `setDevPassword`; works with developer mode off.
 - `addAuthorizedKey {key}`: one OpenSSH public key line (Ed25519, ECDSA,
