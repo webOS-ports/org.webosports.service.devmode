@@ -1,0 +1,87 @@
+#!/usr/bin/env node
+// Copyright (c) 2026 Herman van Hazendonk
+// SPDX-License-Identifier: GPL-3.0-or-later
+
+'use strict';
+
+/*
+	luneos-ssh-addkey: one ssh public key, on stdin, for root. Over adb:
+
+	    adb shell luneos-ssh-addkey < ~/.ssh/id_ed25519.pub
+
+	It is Settings > Developer Mode's "Authorized keys", from a computer: the
+	same code (lib/access.js), so the same checks (one OpenSSH public key
+	line, no options, a type sshd should be given, RSA of 2048 bits or more),
+	the same file (root's ~/.ssh/authorized_keys, root's home from the
+	passwd database), the same 0700/0600, and it too needs developer mode
+	on. Prints the key's fingerprint, as ssh-keygen -l does.
+
+	Exit status: 0 added or there already, 1 refused, 2 no key on stdin.
+*/
+
+const fs = require('fs');
+const {createAccess} = require('../lib/access');
+const {DEVMODE_FLAG} = require('../lib/devmode');
+
+// A public key line is a few hundred bytes; an RSA 16384 one under 3 KiB.
+const MAX_INPUT = 16384;
+
+/*
+	text: what came on stdin. access: lib/access.js's createAccess() (for the
+	tests). -> {code, out, err}
+*/
+async function addKey(text, access) {
+	if (typeof text !== 'string' || text.trim() === '') {
+		return {code: 2, out: '', err: 'usage: luneos-ssh-addkey < key.pub   (one ssh public key line on stdin)\n'};
+	}
+	if (text.length > MAX_INPUT) {
+		return {code: 1, out: '', err: 'luneos-ssh-addkey: that is not one public key line (too long)\n'};
+	}
+	// One line: a key file's own line break at the end, and nothing after it.
+	const line = text.replace(/\r?\n$/, '');
+	try {
+		const r = await access.addAuthorizedKey({key: line});
+		return {code: 0, out: (r.added ? 'added ' : 'already there: ') + r.fingerprint + '\n', err: ''};
+	} catch (e) {
+		return {code: 1, out: '', err: 'luneos-ssh-addkey: ' + (e.errorText || e.message) + '\n'};
+	}
+}
+
+function readStdin() {
+	return new Promise((resolve, reject) => {
+		const chunks = [];
+		let size = 0;
+		process.stdin.on('data', c => {
+			size += c.length;
+			if (size <= MAX_INPUT + 1) {
+				chunks.push(c);
+			}
+		});
+		process.stdin.on('end', () => resolve(Buffer.concat(chunks).toString('utf8')));
+		process.stdin.on('error', reject);
+	});
+}
+
+async function main() {
+	if (process.stdin.isTTY) {
+		process.stderr.write('usage: luneos-ssh-addkey < key.pub   (one ssh public key line on stdin)\n');
+		return 2;
+	}
+	const access = createAccess({
+		log: {log() {}, info() {}, warn() {}, error: m => process.stderr.write(m + '\n')},
+		devmodeOn: () => fs.existsSync(DEVMODE_FLAG)
+	});
+	const r = await addKey(await readStdin(), access);
+	process.stdout.write(r.out);
+	process.stderr.write(r.err);
+	return r.code;
+}
+
+if (require.main === module) {
+	main().then(code => { process.exitCode = code; }, e => {
+		process.stderr.write('luneos-ssh-addkey: ' + e.message + '\n');
+		process.exitCode = 1;
+	});
+}
+
+module.exports = {addKey, MAX_INPUT};

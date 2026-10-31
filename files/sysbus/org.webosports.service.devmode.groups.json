@@ -1,4 +1,6 @@
 {
  "allowedNames": ["org.webosports.service.devmode"],
- "devmode-service.operation": ["dev"]
+ "devmode-service.operation": ["dev"],
+ "devmode-service.management": ["oem"],
+ "devmode-service.shell": ["oem"]
 }

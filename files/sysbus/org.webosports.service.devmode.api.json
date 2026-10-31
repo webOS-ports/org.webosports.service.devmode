@@ -1,6 +1,20 @@
 {
   "devmode-service.operation": [
-      "org.webosports.service.devmode/getStatus",
-      "org.webosports.service.devmode/setStatus"
+      "org.webosports.service.devmode/getStatus"
+  ],
+  "devmode-service.management": [
+      "org.webosports.service.devmode/setStatus",
+      "org.webosports.service.devmode/getAccessStatus",
+      "org.webosports.service.devmode/setDevPassword",
+      "org.webosports.service.devmode/clearDevPassword",
+      "org.webosports.service.devmode/addAuthorizedKey",
+      "org.webosports.service.devmode/removeAuthorizedKey",
+      "org.webosports.service.devmode/listAuthorizedKeys",
+      "org.webosports.service.devmode/sshOverWifi",
+      "org.webosports.service.devmode/revokeAdbKeys"
+  ],
+  "devmode-service.shell": [
+      "org.webosports.service.devmode/adbAuthRequests",
+      "org.webosports.service.devmode/respondAdbAuth"
   ]
 }

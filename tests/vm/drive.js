@@ -11,7 +11,7 @@ const fs = require('fs');
 
 const SVC = 'luna://org.webosports.service.devmode/';
 const DEV = '/var/luna/dev-mode-enabled';
-const USB = '/etc/usb-debugging-enabled';
+const USB = '/var/usb-debugging-enabled';
 
 function ls(uri, payload) {
 	return new Promise(resolve => {
